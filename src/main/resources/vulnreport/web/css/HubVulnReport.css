@@ -1,0 +1,344 @@
+body
+{
+	font-family: 'Open Sans', sans-serif;
+	font-size: 12px;
+	color: #000;
+	text-align: left;
+}
+
+.reportHeader{
+	height: 60px;
+	padding-top: 0px;
+	background-color: #2D343E;
+}
+
+.reportHeaderTitle{
+	display: inline-block;
+	padding-left: 10px;
+	padding-top : 0px;
+	padding-right : 0px;
+	padding-bottom : 0px;
+	font-size: 22px;
+	font-weight: bold;
+	color: white;
+}
+
+.reportHeaderIcon{
+	width: 290px;
+	height: 50px;
+	padding: 5px;
+	background-image: url(../images/BlackDuckHubLogo.png);
+	background-repeat: no-repeat;
+}
+
+.versionSummaryTable{
+	padding-top: 5px;
+}
+
+.versionSummaryLargeLabel{
+	font-size: 22px;
+}
+
+.versionSummaryLabel, .versionSummaryLargeLabel{
+	display: inline-block;
+	padding-left: 2px;
+	padding-right: 0px;
+	padding-top: 2px;
+	padding-bottom: 1px;
+}
+
+a{
+	color: #46759E;
+}
+
+a:visited
+{
+	color: #46759E;
+}
+
+.vulnerabilityFilter
+{
+	color:#b52b24;
+}
+
+
+.componentHeader
+{
+	text-align: left;
+	font-size: 16px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 5px;
+	padding-bottom: 0px;
+	font-weight:bold;
+	background-color: #fff;
+	color: #29aae1;
+	border-bottom: 1px solid #29aae1;
+
+}
+
+.license
+{
+	font-size: 11px;
+	font-weight: 300;
+}
+
+.permissive
+{
+	color: #659965;
+}
+
+.weak_reciprocal
+{
+	color:#eca4a0;
+}
+
+.reciprocal, .unknown
+{	
+	color: #b52b24;
+}
+
+.severitySummary
+{
+	float: right;
+	margin-left: auto;
+    margin-right: 0px;
+    width: 325px;
+    text-align: center;
+}
+
+.severityDiv
+{
+	margin: 5px;
+    padding: 10px;
+    width: 75px;
+    display:inline-block;
+}
+
+.severityNumber
+{
+	font-size:24px;	
+	padding: 0px;
+	margin-top: -10px;
+}
+
+.severityLabel
+{
+	font-size:11px;	
+	padding: 0px;
+	margin-top: -5px;
+	margin-bottom: -10px;
+}
+
+
+.severityLow {
+	font-weight: bold;
+	color: white;
+	background-color: #999;
+}
+
+.severityMed {
+	font-weight: bold;
+	color: white;
+	background-color: #eca4a0;
+}
+
+.severityHigh {
+	font-weight: bold;
+	color: white;
+	background-color: #b52b24;
+}
+
+.sectionTitle
+{
+	border-bottom:1px dotted #999;
+	font-size:16px;
+	font-weight:600;
+	padding:2px;
+	color: #fff;
+	background-color:#29aae1;
+}
+
+.componentSummaryTable
+{
+	padding: 5px 0px;
+}
+
+.componentSummaryName
+{
+	display: inline-block;
+	max-width:355px;
+	font-size: 12px;
+	font-weight:600;
+	padding-left:10px;
+}
+
+.componentSummarySeverityDiv
+{
+	margin: 0px 5px;
+    padding: 0px 10px;
+    width: 75px;
+    display:inline-block;
+}
+
+.componentSummarySeverityNumber
+{
+	font-size:16px;	
+	padding: 0px;
+	margin-top: -2px;
+}
+
+.componentSummarySeverityLow
+{
+	font-weight: bold;
+	color: #999;
+}
+
+.componentSummarySeverityMed
+{
+	font-weight: bold;
+	color:#eca4a0;
+}
+
+.componentSummarySeverityHigh
+{
+	font-weight: bold;
+	color: #b52b24;
+}
+
+.vulnTable {
+	background-color: #f5f5f5;
+	border: 1px solid #f5f5f5 !important;
+	border-spacing: 0px !important;
+	font-weight: 100;
+	width: 100%;
+	margin-top: 5px;
+	margin-bottom: 10px;
+}
+
+td
+{
+	padding: 5px;
+}
+
+
+.componentColumn, .vulnColumn, .scoreColumn, .defaultColumn, .severityColumn  {
+	border-collapse: collapse !important;
+	border-spacing: 0px !important;
+	min-width: 65px;
+	white-space: normal;
+	word-wrap: break-word;
+	max-width: 300px;
+	height: 25px;
+	text-decoration: none;
+}
+
+.vulnHeader
+{
+	font-weight: 600;
+}
+
+.severityColumn
+{
+	width: 40px;
+	text-align: center;
+}
+
+.statusColumn
+{
+	text-align: center;
+	min-width: 150px;
+	max-width:170px;
+}
+
+
+.defaultColumn
+{
+	max-width: 100px;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.descriptionColumn
+{
+	max-width: 100%;
+}
+
+.scoreColumn {
+	min-width: 25px;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.big
+{
+	font-size: 14px;
+}
+
+
+.oddRow {
+	background-color: #ffffff;
+}
+
+.evenRow {
+	background-color: #f9f9f9;
+}
+
+.remediation_complete, .mitigated, .patched
+{
+	color: #659965;
+	
+}
+
+.new, .needs_review, .remediation_required
+{
+	color: #b52b24;
+}
+
+.vulnReportFooterContainer
+{
+	width: 100%;
+	background: #fff;
+	padding-left: 0px;
+	padding-right: 0px;
+	padding-top: 10px;
+	padding-bottom: 0px;
+	line-height: 20px;
+	text-align: right;
+	vertical-align: top;
+	font-color:black;
+	overflow:hidden;
+	
+}
+
+.generatedFor
+{
+	width:80%;
+	float:left;
+	display: block;
+	padding-right:5px;
+	font-style: italic;
+}
+
+.fodBrand
+{
+	font-family: MetricWeb,Verdana,Helvetica,Arial,sans-serif;
+	font-weight: 600;
+	max-width:140px;
+	float:left;
+	text-align:left;
+	display: block;
+	overflow: hidden;
+}
+
+.fodBrandSmall
+{
+	font-weight: 300;
+    display: block;
+}
+
+.disclaimer
+{
+	margin-top:15px;
+	font-style: italic;
+}
