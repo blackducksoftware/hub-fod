@@ -1,9 +1,32 @@
+/**
+ * hub-fod
+ *
+ * Copyright (C) 2017 Black Duck Software, Inc.
+ * http://www.blackducksoftware.com/
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package com.blackducksoftware.integration.hub.fod.service;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +53,8 @@ import com.blackducksoftware.integration.hub.fod.exception.FoDConnectionExceptio
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import okhttp3.Authenticator;
+import okhttp3.Credentials;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -40,6 +65,7 @@ import okhttp3.Response;
 public class FoDRestConnectionService {
 	
 	private final Logger logger = LoggerFactory.getLogger(FoDRestConnectionService.class);
+	private final HubFoDConfigProperties appProps;
 	
     private final static int CONNECTION_TIMEOUT = 10;
     private final static int WRITE_TIMEOUT = 30;
@@ -49,16 +75,11 @@ public class FoDRestConnectionService {
     private final static String APPLICATIONS = "applications";
     private final static String RELEASES = "releases";
     private final static String FOD_API_URL_VERSION = "/api/v3/";
-    private final static String FPR_IMPORT_SESSIONID = "import-scan-session-id";
-    // TODO: TO BE USED with 5/20 FoD
     private final static String REPORT_IMPORT_SESSIONID = "reports/import-report-session-id";
-    private final static String FPR_IMPORT = "/dynamic-scans/import-scan";
+    private final static String IMPORT_REPORT = "reports/import-report";
 
     private OkHttpClient client;
     private String token;
-
-    @Autowired
-    HubFoDConfigProperties appProps;
   
     /**
      * Constructor that encapsulates the api
@@ -67,8 +88,9 @@ public class FoDRestConnectionService {
      * @param secret  api secret
      * @param baseUrl api url
      */
-    public FoDRestConnectionService() {
-     
+    @Autowired
+    public FoDRestConnectionService(HubFoDConfigProperties appProps) {
+    	this.appProps = appProps;
         client = Create();
 
     }
@@ -83,7 +105,7 @@ public class FoDRestConnectionService {
     	headers.add("Authorization", "Bearer " + this.getToken());
     	
     	HttpEntity<String> request = new HttpEntity<String>(headers);
-    	ResponseEntity<FoDAppResponseItems> response = restTemplate.exchange(appProps.getFodBaseURL() + FOD_API_URL_VERSION + APPLICATIONS, 
+    	ResponseEntity<FoDAppResponseItems> response = restTemplate.exchange(appProps.getFodAPIBaseURL() + FOD_API_URL_VERSION + APPLICATIONS, 
     																HttpMethod.GET, request, FoDAppResponseItems.class);
     	FoDAppResponseItems fodAppResponse = response.getBody();
     	return fodAppResponse.getItems();
@@ -100,7 +122,7 @@ public class FoDRestConnectionService {
     	headers.add("Authorization", "Bearer " + this.getToken());
     	
     	HttpEntity<String> request = new HttpEntity<String>(headers);
-    	ResponseEntity<FoDAppReleaseResponseItems> response = restTemplate.exchange(appProps.getFodBaseURL() + FOD_API_URL_VERSION + APPLICATIONS+"/"+applicationId+"/"+RELEASES, 
+    	ResponseEntity<FoDAppReleaseResponseItems> response = restTemplate.exchange(appProps.getFodAPIBaseURL() + FOD_API_URL_VERSION + APPLICATIONS+"/"+applicationId+"/"+RELEASES, 
     																				HttpMethod.GET, request, FoDAppReleaseResponseItems.class);
     	FoDAppReleaseResponseItems fodAppReleaseResponse = response.getBody();
     	return fodAppReleaseResponse.getItems();
@@ -125,21 +147,22 @@ public class FoDRestConnectionService {
     	requestJson.addProperty("reportName", reportName);
     	requestJson.addProperty("reportNotes", reportNotes);
     	
-    	logger.debug("SENDING this to FoD:"+requestJson.toString());
+    	logger.debug("Requesting Session ID to FoD:"+requestJson.toString());
     	
     	HttpEntity<String> request = new HttpEntity<String>(requestJson.toString(), headers);
     	
-    	// TODO change this to /api/v3/reports/import-report-session-id & HttpMethod.PUT
-    	ResponseEntity<String> response = restTemplate.exchange(appProps.getFodBaseURL() + FOD_API_URL_VERSION + RELEASES +"/"+releaseId+"/"+FPR_IMPORT_SESSIONID, 
-    															HttpMethod.GET, request, String.class);
+    	// Get the Session ID
+    	ResponseEntity<String> response = restTemplate.exchange(appProps.getFodAPIBaseURL() + FOD_API_URL_VERSION + REPORT_IMPORT_SESSIONID, 
+    															HttpMethod.POST, request, String.class);
+    	
     	
     	JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(response.getBody()).getAsJsonObject();
 
-    	return obj.get("importScanSessionId").getAsString();
+    	return obj.get("importReportSessionId").getAsString();
     }
     
-    public void uploadFoDPDF(String releaseId, String sessionId, String uploadFilePath, long fileLength) throws IOException
+    public String uploadFoDPDF(String releaseId, String sessionId, String uploadFilePath, long fileLength) throws IOException
     {
     	RestTemplate restTemplate = new RestTemplate();
     	
@@ -152,42 +175,50 @@ public class FoDRestConnectionService {
     	int totalBytesRead = 0;
     	int numberOfFrags = 0;
     	
-    	//TODO: maybe calc total chunks to display to user
-    	
-    	//TODO: Test data, remove with new version of fod
-    	File testFile = new File("/Users/dmeurer/TEST/TEST-hub-fod-upload.fpr");
-    	fileLength = testFile.length();
-    	
-    	//uploadFilePath
-    	 try (BufferedInputStream vulnFileStream = new BufferedInputStream(
-                 						new FileInputStream("/Users/dmeurer/TEST/TEST-hub-fod-upload.fpr")))
+    	 // Chunk it up and send to FoD
+    	 try (BufferedInputStream vulnFileStream = new BufferedInputStream(new FileInputStream(uploadFilePath)))
     	 {
+    		 ResponseEntity<String> response = null;
     		 
     		 while ( totalBytesRead < (int) fileLength )
     		 {
     			 int bytesRemaining = (int) (fileLength-totalBytesRead);
+    			 // if this is the last frag...
     			 if ( bytesRemaining < fragSize ) 
     			 {
     				 fragSize = bytesRemaining;
+    				 numberOfFrags=-1;
     			 }
     			 fragBytes = new byte[fragSize];
     			 int bytesRead = vulnFileStream.read(fragBytes, 0, fragSize);
     			 
-    			 totalBytesRead += bytesRead;
-    			 numberOfFrags++;
-    			 
-    			 System.out.println("Total Bytes Read: "+totalBytesRead+ " | Frag Number: "+numberOfFrags);
-    			 
     			 HttpEntity<byte[]> request = new HttpEntity<byte[]>(fragBytes, headers);
     			 
-    			 //TODO: Test with FPR PUT /api/v3/releases/{releaseId}/dynamic-scans/import-scan
-    			 //TODO: offset, fileLength, importScanSessionId  ... frag needs to be -1 at the end
-    			 ResponseEntity<String> response = restTemplate.exchange(
-    					 appProps.getFodBaseURL() + FOD_API_URL_VERSION + RELEASES +"/"+releaseId+"/"+FPR_IMPORT
-    					 +"?fragNo="+String.valueOf(numberOfFrags-1), 
-							HttpMethod.PUT, request, String.class);
-    				
+    			 String importURL = appProps.getFodAPIBaseURL() + FOD_API_URL_VERSION + IMPORT_REPORT
+    					 			+"/?fragNo="+String.valueOf(numberOfFrags)
+    					 			+"&offset="+totalBytesRead
+    					 			+"&importReportSessionId="+sessionId;
+    			 
+    			 logger.debug("Attempting PUT with: " + importURL);
+    			 
+    			 response = restTemplate.exchange(importURL, HttpMethod.PUT, request, String.class);
+    			
+    			 totalBytesRead += bytesRead;
+    			 numberOfFrags++;
+    			 logger.debug("Total Bytes Read: "+totalBytesRead);
     		 }
+    		 
+    		JsonParser parser = new JsonParser();
+	        JsonObject obj = parser.parse(response.getBody()).getAsJsonObject();
+
+	    	return obj.get("reportId").getAsString();
+    		 
+    	 }
+    	 catch(Exception e)
+    	 {
+    		 logger.error("Sending PDF to FoD failed. Please contact Black Duck with this error and stack trace:");
+             e.printStackTrace();
+             throw e;
     	 }
     }
     
@@ -205,7 +236,7 @@ public class FoDRestConnectionService {
                     .build();
          
             Request request = new Request.Builder()
-                    .url(appProps.getFodBaseURL() + "/oauth/token")
+                    .url(appProps.getFodAPIBaseURL() + "/oauth/token")
                     .post(formBody)
                     .build();
             Response response = client.newCall(request).execute();
@@ -229,7 +260,7 @@ public class FoDRestConnectionService {
         	if(fce.getMessage().contains(VulnerabilityReportConstants.FOD_UNAUTORIZED))
 			{
 				logger.error("FoD CONNECTION FAILED.  Please check the FoD URL, username, tenant, and password and try again.");
-				logger.info("FoD URL="+appProps.getFodBaseURL());
+				logger.info("FoD URL="+appProps.getFodAPIBaseURL());
 				logger.info("FoD username="+appProps.getFodUsername());
 				logger.info("FoD tennant="+appProps.getFodTenantId());
 			}
@@ -267,9 +298,27 @@ public class FoDRestConnectionService {
                 .writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS)
                 .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS);
 
-        //TODO: Proxy for FoD? If there's no proxy just create a normal client
-        //if (proxy == null)
-       return baseClient.build();
+        //If there's no proxy just create a normal client
+        if (appProps.getProxyHost().isEmpty())
+        	return baseClient.build();
+        
+        OkHttpClient.Builder proxyClient = baseClient
+                .proxy(new java.net.Proxy(java.net.Proxy.Type.HTTP, new InetSocketAddress(appProps.getProxyHost(),Integer.parseInt(appProps.getProxyPort()))));
+        
+        if (!appProps.getProxyUsername().isEmpty() && !appProps.getProxyPassword().isEmpty()) {
+     
+            Authenticator proxyAuthenticator;
+            String credentials;
+            
+            credentials = Credentials.basic(appProps.getProxyUsername(), appProps.getProxyPassword());
+            
+            // authenticate the proxy
+            proxyAuthenticator = (route, response) -> response.request().newBuilder()
+                    .header("Proxy-Authorization", credentials)
+                    .build();
+            proxyClient.proxyAuthenticator(proxyAuthenticator);
+        }
+        return proxyClient.build();
 
     }    
     

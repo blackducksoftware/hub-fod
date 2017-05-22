@@ -51,7 +51,8 @@ public class AuthorizationValidator {
 
     public AuthorizationResponse validateCredentials(final String username, final String password, final String hubUrl,
             final String proxyUsername, final String proxyPassword, final String proxyPort, final String proxyHost,
-            final String ignoredProxyHosts, final String timeout) {
+            final String ignoredProxyHosts, final String timeout) 
+    {
         setHubServerConfigBuilderFields(username, password, hubUrl, proxyUsername, proxyPassword, proxyPort,
                 proxyHost, ignoredProxyHosts, timeout);
 

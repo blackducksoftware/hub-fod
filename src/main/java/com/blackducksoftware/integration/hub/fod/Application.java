@@ -32,6 +32,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
+import com.blackducksoftware.integration.hub.fod.common.VulnerabilityReportConstants;
 import com.blackducksoftware.integration.hub.fod.domain.FoDApplication;
 import com.blackducksoftware.integration.hub.fod.domain.FoDApplicationRelease;
 import com.blackducksoftware.integration.hub.fod.service.FoDImporterService;
@@ -65,8 +66,11 @@ public class Application implements CommandLineRunner{
 			
 		try
 		{
-			logger.info("STARTING Hub + Fortify on Demand Integration");
+			logger.info("STARTING Hub + Fortify on Demand Integration version " + VulnerabilityReportConstants.HUB_FOD_INTEGRATION_VERSION);
 			configurationManager.processUsage(args);
+			
+			//Authenticate and get Hub connection
+			vulnReportService.createHubConnection();	
 			
 			//Authenticate to FoD
 			fodImporter.foDAuthenticate();
@@ -125,19 +129,19 @@ public class Application implements CommandLineRunner{
 				vulnReportService.storeFodHubMapping(appProps.getFodReleaseId());
 			}
 			
-			// TODO: Try and get the app and release NAME (can't if already mapped currently)
 			logger.info("Importing PDF into Fortify On Demand");
 			
-			fodImporter.importVulnerabilityPDF();
+			String reportId = fodImporter.importVulnerabilityPDF();
 			
-			logger.info("Completed Successfully! [URL??]");
+			logger.info("Completed Successfully!");
+			logger.info("Go to Fortify on Demand, or download the report directly at "+appProps.getFodBaseURL()+VulnerabilityReportConstants.FOD_REPORT_DOWNLOAD_URL+reportId);
 			
 		}
 
 		// Catch all exceptions and stop
 		catch (Exception e)
 		{
-			logger.error("Hub-FoD could not complete successfully due to "+ e.getClass().getSimpleName() + ": " +e.getMessage());
+			logger.error("Hub-FoD could not complete successfully due to "+ e.getClass().getSimpleName() + ": " +e.getMessage(), e);
 		}
 	}
 

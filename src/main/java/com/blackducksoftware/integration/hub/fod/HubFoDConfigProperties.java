@@ -23,8 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.fod;
 
-import java.util.ArrayList;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -62,7 +60,7 @@ public class HubFoDConfigProperties {
 	private String proxyPort;
 	
 	@Value("${proxy.ignore.hosts}")
-	private String hubIgnoreProxyHosts;
+	private String ignoreProxyHosts;
 	
 	@Value("${hub.timeout}")
 	private String hubTimeout;
@@ -81,9 +79,12 @@ public class HubFoDConfigProperties {
 	
 	@Value("${fod.release.id}")
 	private String fodReleaseId;
-
+	
 	@Value("${fod.baseurl}")
-	private String fodBaseURL;
+	private String fodBaseURL;	
+
+	@Value("${fod.api.baseurl}")
+	private String fodAPIBaseURL;
 	
 	@Value("${fod.username}")
 	private String fodUsername;
@@ -96,6 +97,9 @@ public class HubFoDConfigProperties {
 	
 	@Value("${hub.vulnerability.filters}")
 	private String[] hubVulnerabilityFilters;
+	
+	@Value("${report.notes}")
+	private String reportNotes;
 
 
 	public String getHubURL() {
@@ -138,45 +142,7 @@ public class HubFoDConfigProperties {
 		this.hubProjectVersion = hubVersion;
 	}
 
-	public String getHubProxyHost() {
-		return proxyHost;
-	}
 
-	public void setHubProxyHost(String hubProxyHost) {
-		this.proxyHost = hubProxyHost;
-	}
-
-	public String getHubProxyUsername() {
-		return proxyUsername;
-	}
-
-	public void setHubProxyUsername(String hubProxyUsername) {
-		this.proxyUsername = hubProxyUsername;
-	}
-
-	public String getHubProxyPassword() {
-		return proxyPassword;
-	}
-
-	public void setHubProxyPassword(String hubProxyPassword) {
-		this.proxyPassword = hubProxyPassword;
-	}
-
-	public String getHubProxyPort() {
-		return proxyPort;
-	}
-
-	public void setHubProxyPort(String hubProxyPort) {
-		this.proxyPort = hubProxyPort;
-	}
-
-	public String getHubIgnoreProxyHosts() {
-		return hubIgnoreProxyHosts;
-	}
-
-	public void setHubIgnoreProxyHosts(String hubIgnoreProxyHosts) {
-		this.hubIgnoreProxyHosts = hubIgnoreProxyHosts;
-	}
 
 	public String getHubTimeout() {
 		return hubTimeout;
@@ -241,16 +207,33 @@ public class HubFoDConfigProperties {
 	public void setProxyPort(String proxyPort) {
 		this.proxyPort = proxyPort;
 	}
+	
+	
+	public String getIgnoreProxyHosts() {
+		return ignoreProxyHosts;
+	}
 
+	public void setIgnoreProxyHosts(String ignoreProxyHosts) {
+		this.ignoreProxyHosts = ignoreProxyHosts;
+	}
+
+	
 	public String getFodBaseURL() {
 		return fodBaseURL;
 	}
 
-	public void setFodBaseURL(String baseURL) {
-		this.fodBaseURL = baseURL;
+	public void setFodBaseURL(String fodBaseURL) {
+		this.fodBaseURL = fodBaseURL;
+	}
+
+	public String getFodAPIBaseURL() {
+		return fodAPIBaseURL;
+	}
+
+	public void setFodAPIBaseURL(String baseAPIURL) {
+		this.fodAPIBaseURL = baseAPIURL;
 	}
 	
-
 	public String getFodApplicationId() {
 		return fodApplicationId;
 	}
@@ -298,6 +281,16 @@ public class HubFoDConfigProperties {
 	public void setHubVulnerabilityFilters(String[] hubVulnerabilityFilters) {
 		this.hubVulnerabilityFilters = hubVulnerabilityFilters;
 	}
+
+	public String getReportNotes() {
+		return reportNotes;
+	}
+
+	public void setReportNotes(String reportNotes) {
+		this.reportNotes = reportNotes;
+	}
+	
+	
 
 	
 	

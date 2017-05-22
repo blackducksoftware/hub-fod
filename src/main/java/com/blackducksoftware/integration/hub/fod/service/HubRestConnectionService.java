@@ -118,7 +118,6 @@ public class HubRestConnectionService {
     	
     }
 
-    //TODO: Implement phone Home
     public PhoneHomeDataService getPhoneHomeDataService() {
         if (phoneHomeDataService == null) {
             phoneHomeDataService = hubServicesFactory.createPhoneHomeDataService(logger);
@@ -127,7 +126,8 @@ public class HubRestConnectionService {
     }
 
     public HubVersionRequestService getHubVersionRequestService() {
-        if (hubVersionRequestService == null) {
+        if (hubVersionRequestService == null) 
+        {
             hubVersionRequestService = hubServicesFactory.createHubVersionRequestService();
         }
         return hubVersionRequestService;
@@ -159,6 +159,7 @@ public class HubRestConnectionService {
     	}
     	return vulnerableBomComponentRequestService;
     }
+    
 
     public RestConnection getRestConnection() {
         return restConnection;
@@ -167,5 +168,6 @@ public class HubRestConnectionService {
     public boolean hasActiveHubConnection() {
         return restConnection != null;
     }
+    
 
 }

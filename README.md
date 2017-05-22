@@ -42,13 +42,18 @@ proxy.port
 proxy.ignore.hosts  
 
 Default parameters.  Only specify if you want to override.  
-fod.baseurl=https://api.hpfod.com  
+fod.baseurl=https://www.hpfod.com  
+fod.api.baseurl=https://api.hpfod.com  
 output.folder=vuln-out  
 output.html.filename=VulnerabilityReport.html  
 output.pdf.filename=BlackDuckVulnerabilityReport.pdf  
 hub.timeout=120  
 logging.file=hub-fod-application.log  
+report.notes= (blank by default, add custom notes here to be prepended to the summary notes of the FoD report)
+
+DEBUG / VERBOSE MODE:
+--verbose, --v  
 
 ## Application Mapping ##
-To map Hub Project Versions to Fortify on Demand Application Releases, the Hub-FoD integration prompts the user to choose the Fortify on Demand Application and Release the first time it is run on a Hub Project Version.  The integration then stores the mapping in the Hub Project Version Notes field in the format: fod.app.release=[appid]|[releaseid]. This allows the integration to run without prompting for subsequent runs. If this mapping is deleted in the Hub, the integration will simply prompt the user again.
+To map Hub Project Versions to Fortify on Demand Application Releases, the Hub-FoD integration prompts the user to choose the Fortify on Demand Application and Release the first time it is run on a Hub Project Version.  The integration then stores the mapping in the Hub Project Version Notes field in the format: fod.app.release=[releaseid]. This allows the integration to run without prompting for subsequent runs. If this mapping is deleted in the Hub, the integration will simply prompt the user again.
 
