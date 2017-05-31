@@ -2,7 +2,7 @@
 Hub-FoD integration is a command line tool allowing the export of Hub Project Version component vulnerability information into a Fortify On Demand Application Release in the PDF format.  
 
 ## Where can I get the latest release? ##
-Download the latest from release page: [https://github.com/blackducksoftware/hub-fod/releases] (https://github.com/blackducksoftware/hub-fod/releases)
+Download the latest from [release page](https://github.com/blackducksoftware/hub-fod/releases)
 
 ## Usage ##
 $ java -jar hub-fod-[VERSION].jar [OPTIONS: parameter=value]
