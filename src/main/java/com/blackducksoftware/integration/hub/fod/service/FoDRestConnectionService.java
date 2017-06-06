@@ -77,6 +77,7 @@ public class FoDRestConnectionService {
     private final static String FOD_API_URL_VERSION = "/api/v3/";
     private final static String REPORT_IMPORT_SESSIONID = "reports/import-report-session-id";
     private final static String IMPORT_REPORT = "reports/import-report";
+   
 
     private OkHttpClient client;
     private String token;
@@ -228,12 +229,25 @@ public class FoDRestConnectionService {
      */
     public void authenticate() throws Exception {
         try {
-            RequestBody formBody = new FormBody.Builder()
-                    .add("scope", "https://hpfod.com/tenant")
-                    .add("grant_type", "password")
+        	
+        	// Build the form body
+            FormBody.Builder formBodyBuilder = new FormBody.Builder().add("scope", "https://hpfod.com/tenant");
+            
+             // Has username/password
+            if(appProps.getFodGrantType().equals(VulnerabilityReportConstants.GRANT_TYPE_PASSWORD))
+            {
+            	formBodyBuilder.add("grant_type", VulnerabilityReportConstants.GRANT_TYPE_PASSWORD)
                     .add("username", appProps.getFodTenantId()+"\\"+appProps.getFodUsername())
-                    .add("password", appProps.getFodPassword())
-                    .build();
+                    .add("password", appProps.getFodPassword());
+            }
+            else // Has api key/secret
+            {
+            	formBodyBuilder.add("grant_type", VulnerabilityReportConstants.GRANT_TYPE_CLIENT_CREDENTIALS)
+                .add("client_id", appProps.getFodClientId())
+                .add("client_secret", appProps.getFodClientSecret());
+            	
+            }
+            RequestBody formBody = formBodyBuilder.build();
          
             Request request = new Request.Builder()
                     .url(appProps.getFodAPIBaseURL() + "/oauth/token")

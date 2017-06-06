@@ -60,10 +60,10 @@ public class HubProjectVersion {
 
 	public void convertFromProjectView(ProjectVersionView pvv)
 	{
-		setVersionName(pvv.getVersionName());
-		setReleaseComments(pvv.getReleaseComments());
-		setDistribution(pvv.getDistribution().name());
-		setPhase(pvv.getPhase().name());
+		setVersionName(pvv.versionName);
+		setReleaseComments(pvv.releaseComments);
+		setDistribution(pvv.distribution.name());
+		setPhase(pvv.phase.name());
 		
 	}
 
