@@ -86,6 +86,9 @@ public class HubFoDConfigProperties {
 	@Value("${fod.api.baseurl}")
 	private String fodAPIBaseURL;
 	
+	@Value("${fod.grant.type}")
+	private String fodGrantType;
+	
 	@Value("${fod.username}")
 	private String fodUsername;
 	
@@ -94,6 +97,12 @@ public class HubFoDConfigProperties {
 	
 	@Value("${fod.tenant.id}")
 	private String fodTenantId;
+	
+	@Value("${fod.client.id}")
+	private String fodClientId;
+	
+	@Value("${fod.client.secret}")
+	private String fodClientSecret;
 	
 	@Value("${hub.vulnerability.filters}")
 	private String[] hubVulnerabilityFilters;
@@ -250,6 +259,14 @@ public class HubFoDConfigProperties {
 		this.fodReleaseId = fodReleaseId;
 	}
 
+	public String getFodGrantType() {
+		return fodGrantType;
+	}
+
+	public void setFodGrantType(String fodGrantType) {
+		this.fodGrantType = fodGrantType;
+	}
+
 	public String getFodUsername() {
 		return fodUsername;
 	}
@@ -272,6 +289,22 @@ public class HubFoDConfigProperties {
 
 	public void setFodTenantId(String fodTenantId) {
 		this.fodTenantId = fodTenantId;
+	}
+
+	public String getFodClientId() {
+		return fodClientId;
+	}
+
+	public void setFodClientId(String fodClientId) {
+		this.fodClientId = fodClientId;
+	}
+
+	public String getFodClientSecret() {
+		return fodClientSecret;
+	}
+
+	public void setFodClientSecret(String fodClientSecret) {
+		this.fodClientSecret = fodClientSecret;
 	}
 
 	public String[] getHubVulnerabilityFilters() {
