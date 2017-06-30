@@ -8,10 +8,10 @@ Download the latest from [release page](https://github.com/blackducksoftware/hub
 $ java -jar hub-fod-[VERSION].jar [OPTIONS: parameter=value]
 
 Example:  
-$ java -jar hub-fod-1.1.0.jar --hub.url=https://myhub.domain.com --hub.username=joe --hub.project=My Project --hub.project.version=3.4.5 --fod.username=joseph --fod.tenant.id=acme
+$ java -jar hub-fod-1.1.1.jar --hub.url=https://myhub.domain.com --hub.username=joe --hub.project=My Project --hub.project.version=3.4.5 --fod.username=joseph --fod.tenant.id=acme
 
 Or just run the jar and answer the questions:  
-$ java -jar hub-fod-1.1.0.jar
+$ java -jar hub-fod-1.1.1.jar
 
 [OPTIONS]  
 All options are optional, you will be prompted for any required parameters.  Alternatively, these parameters can be stored in an application.properties configuration file in the same directory as the jar file.
