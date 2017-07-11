@@ -1,0 +1,33 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'com.blackducksoftware'
+version = '1.1.1'
+
+description = "BlackDuck Hub Fortify OnDemand Integration Service"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+tasks.withType(JavaCompile) {
+   options.encoding = 'UTF-8'
+}
+
+repositories {
+     maven { url "http://repo.maven.apache.org/maven2" }
+}
+
+dependencies {
+    compile(group: 'org.springframework.boot', name: 'spring-boot-starter', version:'1.5.2.RELEASE') {
+	exclude(module: 'commons-logging')
+    }
+    compile group: 'org.springframework', name: 'spring-web', version:'4.3.7.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version:'1.5.2.RELEASE'
+    compile group: 'com.blackducksoftware.integration', name: 'hub-common', version:'13.0.2'
+    compile group: 'com.blackducksoftware.integration', name: 'hub-common-reporting', version:'1.0.1-SNAPSHOT'
+    compile group: 'net.sf.jtidy', name: 'jtidy', version:'r938'
+    compile group: 'org.xhtmlrenderer', name: 'flying-saucer-pdf', version:'9.1.1'
+    compile group: 'com.j2html', name: 'j2html', version:'0.88'
+    testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version:'1.5.2.RELEASE') {
+	exclude(module: 'commons-logging')
+    }
+}
