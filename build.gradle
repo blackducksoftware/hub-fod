@@ -1,10 +1,30 @@
-apply plugin: 'java'
-apply plugin: 'maven'
+buildscript {
+	ext {
+		springBootVersion = '1.5.3.RELEASE'
+	}
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		maven{url "https://plugins.gradle.org/m2/"}
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+ 		classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.0.0"
+	}
+}
 
-group = 'com.blackducksoftware'
-version = '1.1.1'
-
-description = "BlackDuck Hub Fortify OnDemand Integration Service"
+plugins {
+    id 'java'
+    id 'maven'
+    id 'org.springframework.boot' version '1.5.3.RELEASE'
+    id 'application'
+    id 'jacoco'
+    id 'com.github.kt3k.coveralls' version '2.8.1'
+}
+allprojects{ 
+	//apply plugin: 'maven-publish' 
+	apply plugin: "com.jfrog.artifactory"
+}
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -12,22 +32,55 @@ tasks.withType(JavaCompile) {
    options.encoding = 'UTF-8'
 }
 
-repositories {
-     maven { url "http://repo.maven.apache.org/maven2" }
+group = 'com.blackducksoftware.integration.hub.fod'
+version = '2.0.0'
+
+description = "BlackDuck Hub Fortify OnDemand Integration Service"
+
+mainClassName = 'com.blackducksoftware.integration.hub.fod.Application'
+
+applicationDefaultJvmArgs = ["-Dspring.config.location=../config/"]
+
+startScripts {
+    doLast {
+        windowsScript.text = windowsScript.text.replace("%CMD_LINE_ARGS%", "--spring.config.location=../config/")
+    }
+}
+
+repositories{
+	mavenLocal()
+	maven {
+        url '/Users/smanikantan/.m2/repository'
+    }
+	mavenCentral()
 }
 
 dependencies {
     compile(group: 'org.springframework.boot', name: 'spring-boot-starter', version:'1.5.2.RELEASE') {
-	exclude(module: 'commons-logging')
+		exclude(module: 'commons-logging')
     }
-    compile group: 'org.springframework', name: 'spring-web', version:'4.3.7.RELEASE'
-    compile group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version:'1.5.2.RELEASE'
-    compile group: 'com.blackducksoftware.integration', name: 'hub-common', version:'13.0.2'
-    compile group: 'com.blackducksoftware.integration', name: 'hub-common-reporting', version:'1.0.1-SNAPSHOT'
-    compile group: 'net.sf.jtidy', name: 'jtidy', version:'r938'
-    compile group: 'org.xhtmlrenderer', name: 'flying-saucer-pdf', version:'9.1.1'
-    compile group: 'com.j2html', name: 'j2html', version:'0.88'
-    testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version:'1.5.2.RELEASE') {
-	exclude(module: 'commons-logging')
-    }
+    compile("org.springframework.boot:spring-boot-starter-batch")
+	compile("org.springframework:spring-beans")
+	compile("org.springframework:spring-context")
+	compile("org.springframework:spring-context-support")
+	compile("org.springframework:spring-core")
+	compile("org.springframework:spring-expression")
+	compile("com.blackducksoftware.integration:hub-common:13.1.2-SNAPSHOT")
+	//compile("javax.servlet:javax.servlet-api")
+    compile("com.fasterxml.jackson.core:jackson-annotations:2.8.8")
+    compile("com.google.code.gson:gson")
+    compile("org.modelmapper:modelmapper:1.0.0")
+    compile("com.squareup.retrofit2:converter-gson:2.1.0")
+    compile("com.squareup.retrofit2:converter-jackson:2.1.0")
+    compile("com.squareup.retrofit2:retrofit:2.1.0")
+    compile("com.squareup.okhttp3:okhttp:3.3.1")
+	compile("com.squareup.okhttp3:logging-interceptor:3.3.1")
+	compile("com.squareup.okhttp3:okhttp-urlconnection:3.3.1")
+	compile("com.squareup.retrofit2:converter-simplexml:2.1.0")
+	compile("org.apache.httpcomponents:httpclient:4.3.4")
+	
+    testCompile("org.powermock:powermock-api-mockito:1.6.6")
+	testCompile("org.powermock:powermock-module-junit4:1.6.6")
+	testCompile("junit:junit:4.+")
+    testCompile("org.springframework.boot:spring-boot-starter-test")
 }
