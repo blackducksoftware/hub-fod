@@ -194,7 +194,7 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
     private FortifyUploadRequest mergeVulnerabilities(final List<ProjectVersionView> projectVersionItems, final List<HubProjectVersion> hubProjectVersions)
             throws IllegalArgumentException, IntegrationException {
         int index = 0;
-        List<ComponentVersionBom> componentVersionBoms = new ArrayList<>();
+        Map<String, ComponentVersionBom> componentVersionBoms = new HashMap<>();
         for (ProjectVersionView projectVersionItem : projectVersionItems) {
             final List<VulnerableComponentView> vulnerabilities = HubServices.getVulnerabilityComponentViews(projectVersionItem);
             final Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents = groupByVulnerabilityByComponent(vulnerabilities);
@@ -202,13 +202,27 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
             final List<VersionBomComponentView> allComponents = HubServices.getAggregatedComponentLists(projectVersionItem);
 
             for (VersionBomComponentView component : allComponents) {
-                componentVersionBoms.add(getComponentVersionBom(component, hubProjectVersions.get(index), groupByVulnerabilityComponents));
+                ComponentVersionBom componentVersionBom = getComponentVersionBom(component, hubProjectVersions.get(index),
+                        groupByVulnerabilityComponents);
+                if (hubProjectVersions.size() > 1 && componentVersionBoms.containsKey(component.componentVersion)) {
+                    componentVersionBom = new ComponentVersionBom("Multiple Projects", "Multiple Versions",
+                            componentVersionBom.getComponentID(), componentVersionBom.getComponentVersionID(), componentVersionBom.getComponentName(),
+                            componentVersionBom.getComponentVersionName(), componentVersionBom.getComponent(), componentVersionBom.getComponentVersion(),
+                            componentVersionBom.getTotalVulnerabilities(), componentVersionBom.getVulnerabilities(),
+                            componentVersionBom.getTotalMatchedFilesCount(), componentVersionBom.getMatchedFiles(), componentVersionBom.getLicenses(),
+                            componentVersionBom.getOrigins(), componentVersionBom.getUsages(), componentVersionBom.getReleasedOn(),
+                            componentVersionBom.getLicenseRiskProfile(), componentVersionBom.getSecurityRiskProfile(),
+                            componentVersionBom.getVersionRiskProfile(), componentVersionBom.getActivityRiskProfile(),
+                            componentVersionBom.getOperationalRiskProfile(), componentVersionBom.getActivityData(), componentVersionBom.getReviewStatus(),
+                            componentVersionBom.getReviewedDetails(), componentVersionBom.getApprovalStatus());
+                }
+                componentVersionBoms.put(component.componentVersion, componentVersionBom);
             }
             index++;
         }
 
         FortifyUploadRequest fortifyUploadRequest = new FortifyUploadRequest(componentVersionBoms.size(), maxBomUpdatedDate,
-                componentVersionBoms);
+                new ArrayList<>(componentVersionBoms.values()));
         return fortifyUploadRequest;
     }
 
