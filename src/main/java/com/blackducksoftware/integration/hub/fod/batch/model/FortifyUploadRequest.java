@@ -33,7 +33,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
  * This class will be used to hold the fortify upload request
- * 
+ *
  * @author smanikantan
  *
  */
@@ -48,26 +48,15 @@ public final class FortifyUploadRequest {
     @JsonProperty("totalCount")
     private final int totalCount;
 
-    @JsonProperty("scanCreatedAt")
-    private final Date scanCreatedAt;
-
-    @JsonProperty("scanUpdatedAt")
-    private final Date scanUpdatedAt;
+    @JsonProperty("bomUpdatedAt")
+    private final Date bomUpdatedAt;
 
     @JsonProperty("items")
     private final List<ComponentVersionBom> items;
 
-    /**
-     *
-     * @param items
-     * @param totalCount
-     * @param scanCreatedAt
-     * @param scanUpdatedAt
-     */
-    public FortifyUploadRequest(int totalCount, Date scanCreatedAt, Date scanUpdatedAt, List<ComponentVersionBom> items) {
+    public FortifyUploadRequest(int totalCount, Date bomUpdatedAt, List<ComponentVersionBom> items) {
         this.totalCount = totalCount;
-        this.scanCreatedAt = scanCreatedAt;
-        this.scanUpdatedAt = scanUpdatedAt;
+        this.bomUpdatedAt = bomUpdatedAt;
         this.items = items;
     }
 
@@ -75,12 +64,8 @@ public final class FortifyUploadRequest {
         return totalCount;
     }
 
-    public Date getScanCreatedAt() {
-        return scanCreatedAt;
-    }
-
-    public Date getScanUpdatedAt() {
-        return scanUpdatedAt;
+    public Date getBomUpdatedAt() {
+        return bomUpdatedAt;
     }
 
     public List<ComponentVersionBom> getItems() {
@@ -89,7 +74,7 @@ public final class FortifyUploadRequest {
 
     @Override
     public String toString() {
-        return "{\"totalCount\":" + totalCount + ", \"scanCreatedAt\":\"" + scanCreatedAt + "\", \"scanUpdatedAt\":\"" + scanUpdatedAt
-                + "\", \"items\":" + items + "}";
+        return "FortifyUploadRequest [totalCount=" + totalCount + ", bomUpdatedAt=" + bomUpdatedAt + ", items=" + items + "]";
     }
+
 }

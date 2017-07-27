@@ -53,7 +53,6 @@ import com.blackducksoftware.integration.hub.fod.batch.model.TransformedOriginVi
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedVulnerabilityWithRemediationView;
 import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
-import com.blackducksoftware.integration.hub.model.view.CodeLocationView;
 import com.blackducksoftware.integration.hub.model.view.MatchedFilesView;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomComponentView;
@@ -61,6 +60,7 @@ import com.blackducksoftware.integration.hub.model.view.VulnerabilityView;
 import com.blackducksoftware.integration.hub.model.view.VulnerabilityWithRemediationView;
 import com.blackducksoftware.integration.hub.model.view.VulnerableComponentView;
 import com.blackducksoftware.integration.hub.model.view.components.OriginView;
+import com.google.gson.Gson;
 
 /**
  * This class will be used as Thread and it will perform the following tasks in parallel for each Hub-Fortify mapper
@@ -104,8 +104,11 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
 
         if ((getLastSuccessfulJobRunTime != null && maxBomUpdatedDate.after(getLastSuccessfulJobRunTime)) || (getLastSuccessfulJobRunTime == null)) {
             // Get the vulnerabilities for all Hub project versions and merge it
-            FortifyUploadRequest fortifyUploadRequest = mergeVulnerabilities(projectVersionItems);
-            logger.debug("fortifyUploadRequest::" + fortifyUploadRequest);
+            FortifyUploadRequest fortifyUploadRequest = mergeVulnerabilities(projectVersionItems, hubProjectVersions);
+            Gson gson = new Gson();
+            // 2. Java object to JSON, and assign to a String
+            String jsonInString = gson.toJson(fortifyUploadRequest);
+            logger.debug("fortifyUploadRequest::" + jsonInString);
         }
         return true;
     }
@@ -188,32 +191,23 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
      * @throws IntegrationException
      * @throws IllegalArgumentException
      */
-    private FortifyUploadRequest mergeVulnerabilities(final List<ProjectVersionView> projectVersionItems)
+    private FortifyUploadRequest mergeVulnerabilities(final List<ProjectVersionView> projectVersionItems, final List<HubProjectVersion> hubProjectVersions)
             throws IllegalArgumentException, IntegrationException {
-
+        int index = 0;
         List<ComponentVersionBom> componentVersionBoms = new ArrayList<>();
-        List<CodeLocationView> mergedCodeLocations = new ArrayList<>();
         for (ProjectVersionView projectVersionItem : projectVersionItems) {
             final List<VulnerableComponentView> vulnerabilities = HubServices.getVulnerabilityComponentViews(projectVersionItem);
             final Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents = groupByVulnerabilityByComponent(vulnerabilities);
 
-            mergedCodeLocations.addAll(HubServices.getScanDates(projectVersionItem));
-
             final List<VersionBomComponentView> allComponents = HubServices.getAggregatedComponentLists(projectVersionItem);
 
             for (VersionBomComponentView component : allComponents) {
-                componentVersionBoms.add(getComponentVersionBom(component, groupByVulnerabilityComponents));
+                componentVersionBoms.add(getComponentVersionBom(component, hubProjectVersions.get(index), groupByVulnerabilityComponents));
             }
+            index++;
         }
-        System.out.println("mergedCodeLocations::" + mergedCodeLocations);
-        Date scanCreatedAt = null;
-        Date scanUpdatedAt = null;
 
-        if (mergedCodeLocations.size() > 0) {
-            scanCreatedAt = mergedCodeLocations.stream().map(u -> u.createdAt).max(Date::compareTo).get();
-            scanUpdatedAt = mergedCodeLocations.stream().map(u -> u.updatedAt).max(Date::compareTo).get();
-        }
-        FortifyUploadRequest fortifyUploadRequest = new FortifyUploadRequest(componentVersionBoms.size(), scanCreatedAt, scanUpdatedAt,
+        FortifyUploadRequest fortifyUploadRequest = new FortifyUploadRequest(componentVersionBoms.size(), maxBomUpdatedDate,
                 componentVersionBoms);
         return fortifyUploadRequest;
     }
@@ -227,8 +221,9 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
      * @throws IllegalArgumentException
      * @throws IntegrationException
      */
-    private ComponentVersionBom getComponentVersionBom(final VersionBomComponentView component,
-            final Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents) throws IllegalArgumentException, IntegrationException {
+    private ComponentVersionBom getComponentVersionBom(final VersionBomComponentView component, HubProjectVersion hubProjectVersion,
+            final Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents)
+            throws IllegalArgumentException, IntegrationException {
         List<MatchedFilesView> consolidatedMatchedFiles = new ArrayList<>();
         for (OriginView origin : component.origins) {
             consolidatedMatchedFiles.addAll(HubServices.getMatchedFiles(origin));
@@ -244,11 +239,11 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
 
         String[] componentId = component.component.split("/");
         String[] componentVersionId = component.componentVersion.split("/");
-        return new ComponentVersionBom(componentId[componentId.length - 1], componentVersionId[componentVersionId.length - 1], component.componentName,
-                component.componentVersionName, component.component, component.componentVersion, vulnerabilityWithRemediationViews.size(),
-                vulnerabilityWithRemediationViews, matchedFiles.size(), matchedFiles, component.licenses, origins, component.usages,
-                component.releasedOn, component.licenseRiskProfile, component.securityRiskProfile, component.versionRiskProfile,
-                component.activityRiskProfile, component.operationalRiskProfile, component.activityData, component.reviewStatus,
+        return new ComponentVersionBom(hubProjectVersion.getHubProject(), hubProjectVersion.getHubProjectVersion(), componentId[componentId.length - 1],
+                componentVersionId[componentVersionId.length - 1], component.componentName, component.componentVersionName, component.component,
+                component.componentVersion, vulnerabilityWithRemediationViews.size(), vulnerabilityWithRemediationViews, matchedFiles.size(), matchedFiles,
+                component.licenses, origins, component.usages, component.releasedOn, component.licenseRiskProfile, component.securityRiskProfile,
+                component.versionRiskProfile, component.activityRiskProfile, component.operationalRiskProfile, component.activityData, component.reviewStatus,
                 component.reviewedDetails, component.approvalStatus);
     }
 
@@ -308,7 +303,8 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
                         vulnerabilityView.integrityImpact, vulnerabilityView.availabilityImpact, vulnerabilityWithRemediationView.remediationStatus,
                         vulnerabilityWithRemediationView.remediationTargetAt, vulnerabilityWithRemediationView.remediationActualAt,
                         vulnerabilityWithRemediationView.remediationCreatedAt, vulnerabilityWithRemediationView.remediationUpdatedAt,
-                        vulnerabilityView.meta.href);
+                        vulnerabilityView.meta.href, "NVD".equalsIgnoreCase(vulnerabilityView.source)
+                                ? "http://web.nvd.nist.gov/view/vuln/detail?vulnId=" + vulnerabilityView.vulnerabilityName : "");
                 transformedVulnerabilityWithRemediationViews.add(transformedVulnerabilityWithRemediationView);
             });
         }

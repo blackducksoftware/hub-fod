@@ -47,7 +47,6 @@ import com.blackducksoftware.integration.hub.fod.batch.model.TransformedMatchedF
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedOriginView;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedVulnerabilityWithRemediationView;
 import com.blackducksoftware.integration.hub.fod.service.HubServices;
-import com.blackducksoftware.integration.hub.model.view.CodeLocationView;
 import com.blackducksoftware.integration.hub.model.view.MatchedFilesView;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.ProjectView;
@@ -177,17 +176,10 @@ public class HubServicesTest extends TestCase {
         ProjectVersionView projectVersionItem = null;
         projectVersionItem = HubServices.getProjectVersion(PROJECT_NAME, VERSION_NAME);
 
+        Date bomUpdatedValueAt = HubServices.getBomLastUpdatedAt(projectVersionItem);
+
         List<VulnerableComponentView> vulnerabilities = HubServices.getVulnerabilityComponentViews(projectVersionItem);
         Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents = groupByVulnerabilityByComponent(vulnerabilities);
-
-        List<CodeLocationView> codeLocations = HubServices.getScanDates(projectVersionItem);
-        Date scanCreatedAt = null;
-        Date scanUpdatedAt = null;
-
-        if (codeLocations.size() > 0) {
-            scanCreatedAt = codeLocations.stream().map(u -> u.createdAt).max(Date::compareTo).get();
-            scanUpdatedAt = codeLocations.stream().map(u -> u.updatedAt).max(Date::compareTo).get();
-        }
 
         List<VersionBomComponentView> allComponents = HubServices.getAggregatedComponentLists(projectVersionItem);
         System.out.println("allComponents::" + allComponents.get(0));
@@ -218,16 +210,16 @@ public class HubServicesTest extends TestCase {
             String[] componentId = component.component.split("/");
             String[] componentVersionId = component.componentVersion.split("/");
             componentVersionBoms.add(
-                    new ComponentVersionBom(componentId[componentId.length - 1], componentVersionId[componentVersionId.length - 1], component.componentName,
-                            component.componentVersionName, component.component, component.componentVersion, vulnerabilityWithRemediationViews.size(),
-                            vulnerabilityWithRemediationViews, matchedFiles.size(), matchedFiles, component.licenses, origins, component.usages,
-                            component.releasedOn, component.licenseRiskProfile, component.securityRiskProfile, component.versionRiskProfile,
-                            component.activityRiskProfile, component.operationalRiskProfile, component.activityData, component.reviewStatus,
-                            component.reviewedDetails, component.approvalStatus));
+                    new ComponentVersionBom(PROJECT_NAME, VERSION_NAME, componentId[componentId.length - 1], componentVersionId[componentVersionId.length - 1],
+                            component.componentName, component.componentVersionName, component.component, component.componentVersion,
+                            vulnerabilityWithRemediationViews.size(), vulnerabilityWithRemediationViews, matchedFiles.size(), matchedFiles, component.licenses,
+                            origins, component.usages, component.releasedOn, component.licenseRiskProfile, component.securityRiskProfile,
+                            component.versionRiskProfile, component.activityRiskProfile, component.operationalRiskProfile, component.activityData,
+                            component.reviewStatus, component.reviewedDetails, component.approvalStatus));
             // System.out.println("componentVersionBom::" + componentVersionBom));
         }
 
-        FortifyUploadRequest fortifyUploadRequest = new FortifyUploadRequest(componentVersionBoms.size(), scanCreatedAt, scanUpdatedAt, componentVersionBoms);
+        FortifyUploadRequest fortifyUploadRequest = new FortifyUploadRequest(componentVersionBoms.size(), bomUpdatedValueAt, componentVersionBoms);
         Gson gson = new Gson();
 
         // 2. Java object to JSON, and assign to a String
@@ -292,7 +284,8 @@ public class HubServicesTest extends TestCase {
                         vulnerabilityView.integrityImpact, vulnerabilityView.availabilityImpact, vulnerabilityWithRemediationView.remediationStatus,
                         vulnerabilityWithRemediationView.remediationTargetAt, vulnerabilityWithRemediationView.remediationActualAt,
                         vulnerabilityWithRemediationView.remediationCreatedAt, vulnerabilityWithRemediationView.remediationUpdatedAt,
-                        vulnerabilityView.meta.href);
+                        vulnerabilityView.meta.href, "NVD".equalsIgnoreCase(vulnerabilityView.source)
+                                ? "http://web.nvd.nist.gov/view/vuln/detail?vulnId=" + vulnerabilityView.vulnerabilityName : "");
                 transformedVulnerabilityWithRemediationViews.add(transformedVulnerabilityWithRemediationView);
             });
         }
