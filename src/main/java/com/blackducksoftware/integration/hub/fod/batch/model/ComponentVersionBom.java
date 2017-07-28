@@ -48,6 +48,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({
         "projectName",
         "projectVersionName",
+        "projectVersionUrl",
         "componentID",
         "componentVersionID",
         "componentName",
@@ -79,6 +80,9 @@ public class ComponentVersionBom {
 
     @JsonProperty("projectVersionName")
     private final String projectVersionName;
+
+    @JsonProperty("projectVersionUrl")
+    private final String projectVersionUrl;
 
     @JsonProperty("componentID")
     private final String componentID;
@@ -149,8 +153,8 @@ public class ComponentVersionBom {
     @JsonProperty("approvalStatus")
     private final String approvalStatus;
 
-    public ComponentVersionBom(String projectName, String projectVersionName, String componentID, String componentVersionID, String componentName,
-            String componentVersionName, String component, String componentVersion, int totalVulnerabilities,
+    public ComponentVersionBom(String projectName, String projectVersionName, String hubProjectVersionUrl, String componentID, String componentVersionID,
+            String componentName, String componentVersionName, String component, String componentVersion, int totalVulnerabilities,
             List<TransformedVulnerabilityWithRemediationView> vulnerabilities, int totalMatchedFilesCount, List<TransformedMatchedFilesView> matchedFiles,
             List<VersionBomLicenseView> licenses, List<TransformedOriginView> origins, List<MatchedFileUsageEnum> usages, Date releasedOn,
             RiskProfileView licenseRiskProfile, RiskProfileView securityRiskProfile, RiskProfileView versionRiskProfile, RiskProfileView activityRiskProfile,
@@ -158,6 +162,7 @@ public class ComponentVersionBom {
             String approvalStatus) {
         this.projectName = projectName;
         this.projectVersionName = projectVersionName;
+        this.projectVersionUrl = hubProjectVersionUrl;
         this.componentID = componentID;
         this.componentVersionID = componentVersionID;
         this.componentName = componentName;
@@ -189,6 +194,10 @@ public class ComponentVersionBom {
 
     public String getProjectVersionName() {
         return projectVersionName;
+    }
+
+    public String getHubProjectVersionUrl() {
+        return projectVersionUrl;
     }
 
     public String getComponentID() {
@@ -285,14 +294,15 @@ public class ComponentVersionBom {
 
     @Override
     public String toString() {
-        return "ComponentVersionBom [projectName=" + projectName + ", projectVersionName=" + projectVersionName + ", componentID=" + componentID
-                + ", componentVersionID=" + componentVersionID + ", componentName=" + componentName + ", componentVersionName=" + componentVersionName
-                + ", component=" + component + ", componentVersion=" + componentVersion + ", totalVulnerabilities=" + totalVulnerabilities
-                + ", vulnerabilities=" + vulnerabilities + ", totalMatchedFilesCount=" + totalMatchedFilesCount + ", matchedFiles=" + matchedFiles
-                + ", licenses=" + licenses + ", origins=" + origins + ", usages=" + usages + ", releasedOn=" + releasedOn + ", licenseRiskProfile="
-                + licenseRiskProfile + ", securityRiskProfile=" + securityRiskProfile + ", versionRiskProfile=" + versionRiskProfile + ", activityRiskProfile="
-                + activityRiskProfile + ", operationalRiskProfile=" + operationalRiskProfile + ", activityData=" + activityData + ", reviewStatus="
-                + reviewStatus + ", reviewedDetails=" + reviewedDetails + ", approvalStatus=" + approvalStatus + "]";
+        return "ComponentVersionBom [projectName=" + projectName + ", projectVersionName=" + projectVersionName + ", hubProjectVersionUrl="
+                + projectVersionUrl + ", componentID=" + componentID + ", componentVersionID=" + componentVersionID + ", componentName=" + componentName
+                + ", componentVersionName=" + componentVersionName + ", component=" + component + ", componentVersion=" + componentVersion
+                + ", totalVulnerabilities=" + totalVulnerabilities + ", vulnerabilities=" + vulnerabilities + ", totalMatchedFilesCount="
+                + totalMatchedFilesCount + ", matchedFiles=" + matchedFiles + ", licenses=" + licenses + ", origins=" + origins + ", usages=" + usages
+                + ", releasedOn=" + releasedOn + ", licenseRiskProfile=" + licenseRiskProfile + ", securityRiskProfile=" + securityRiskProfile
+                + ", versionRiskProfile=" + versionRiskProfile + ", activityRiskProfile=" + activityRiskProfile + ", operationalRiskProfile="
+                + operationalRiskProfile + ", activityData=" + activityData + ", reviewStatus=" + reviewStatus + ", reviewedDetails=" + reviewedDetails
+                + ", approvalStatus=" + approvalStatus + "]";
     }
 
 }

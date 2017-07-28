@@ -27,10 +27,8 @@ package com.blackducksoftware.integration.hub.fod.utils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -176,10 +174,12 @@ public class HubServicesTest extends TestCase {
         ProjectVersionView projectVersionItem = null;
         projectVersionItem = HubServices.getProjectVersion(PROJECT_NAME, VERSION_NAME);
 
+        System.out.println("projectReleaseUrl" + projectVersionItem.meta.href);
+
         Date bomUpdatedValueAt = HubServices.getBomLastUpdatedAt(projectVersionItem);
 
         List<VulnerableComponentView> vulnerabilities = HubServices.getVulnerabilityComponentViews(projectVersionItem);
-        Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents = groupByVulnerabilityByComponent(vulnerabilities);
+        Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents = VulnerabilityUtil.groupByVulnerabilityByComponent(vulnerabilities);
 
         List<VersionBomComponentView> allComponents = HubServices.getAggregatedComponentLists(projectVersionItem);
         System.out.println("allComponents::" + allComponents.get(0));
@@ -195,8 +195,8 @@ public class HubServicesTest extends TestCase {
             // System.out.println("consolidatedMatchedFiles::" + consolidatedMatchedFiles);
             assertNotNull(consolidatedMatchedFiles);
 
-            List<TransformedMatchedFilesView> matchedFiles = transformMatchedFilesView(consolidatedMatchedFiles);
-            List<TransformedOriginView> origins = transformOriginView(component.origins);
+            List<TransformedMatchedFilesView> matchedFiles = TransformViewsUtil.transformMatchedFilesView(consolidatedMatchedFiles);
+            List<TransformedOriginView> origins = TransformViewsUtil.transformOriginView(component.origins);
 
             // System.out.println("componentUrl::" + component.getComponentVersion());
             String componentVersionVulnerabilityUrl = HubServices.getComponentVersionVulnerabilityUrl(component.componentVersion);
@@ -210,7 +210,8 @@ public class HubServicesTest extends TestCase {
             String[] componentId = component.component.split("/");
             String[] componentVersionId = component.componentVersion.split("/");
             componentVersionBoms.add(
-                    new ComponentVersionBom(PROJECT_NAME, VERSION_NAME, componentId[componentId.length - 1], componentVersionId[componentVersionId.length - 1],
+                    new ComponentVersionBom(PROJECT_NAME, VERSION_NAME, projectVersionItem.meta.href, componentId[componentId.length - 1],
+                            componentVersionId[componentVersionId.length - 1],
                             component.componentName, component.componentVersionName, component.component, component.componentVersion,
                             vulnerabilityWithRemediationViews.size(), vulnerabilityWithRemediationViews, matchedFiles.size(), matchedFiles, component.licenses,
                             origins, component.usages, component.releasedOn, component.licenseRiskProfile, component.securityRiskProfile,
@@ -234,83 +235,28 @@ public class HubServicesTest extends TestCase {
      * @param matchedFilesView
      * @return
      */
-    private static List<TransformedMatchedFilesView> transformMatchedFilesView(final List<MatchedFilesView> matchedFilesView) {
-        List<TransformedMatchedFilesView> transformedMatchedFilesViews = new ArrayList<>();
-        matchedFilesView.forEach(matchedFileview -> {
-            TransformedMatchedFilesView transformedMatchedFileView = new TransformedMatchedFilesView(matchedFileview.filePath,
-                    matchedFileview.usages);
-            transformedMatchedFilesViews.add(transformedMatchedFileView);
-        });
-        return transformedMatchedFilesViews;
-    }
-
-    /**
-     * It will convert Matched Files view to Matched File View
-     *
-     * @param matchedFilesView
-     * @return
-     */
-    private static List<TransformedOriginView> transformOriginView(final List<OriginView> originViews) {
-        List<TransformedOriginView> transformedOriginViews = new ArrayList<>();
-        originViews.forEach(originView -> {
-            TransformedOriginView transformedOriginView = new TransformedOriginView(originView.name, originView.externalNamespace,
-                    originView.externalId, originView.externalNamespaceDistribution);
-            transformedOriginViews.add(transformedOriginView);
-        });
-        return transformedOriginViews;
-    }
-
-    /**
-     * It will convert Matched Files view to Matched File View
-     *
-     * @param matchedFilesView
-     * @return
-     */
     private static List<TransformedVulnerabilityWithRemediationView> transformVulnerabilityRemediationView(
             final List<VulnerabilityView> vulnerabilityViews,
             Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents, String componentVersionLink) {
         List<TransformedVulnerabilityWithRemediationView> transformedVulnerabilityWithRemediationViews = new ArrayList<>();
         List<VulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = groupByVulnerabilityComponents.get(componentVersionLink);
-        if (vulnerabilityViews != null) {
-            vulnerabilityViews.forEach(vulnerabilityView -> {
-                VulnerabilityWithRemediationView vulnerabilityWithRemediationView = getVulnerabilityRemediationView(vulnerabilityWithRemediationViews,
-                        vulnerabilityView.vulnerabilityName);
-                TransformedVulnerabilityWithRemediationView transformedVulnerabilityWithRemediationView = new TransformedVulnerabilityWithRemediationView(
-                        vulnerabilityView.vulnerabilityName, vulnerabilityView.cweId, "", vulnerabilityView.description,
-                        vulnerabilityWithRemediationView.vulnerabilityPublishedDate, vulnerabilityWithRemediationView.vulnerabilityUpdatedDate,
-                        vulnerabilityView.baseScore, vulnerabilityView.exploitabilitySubscore, vulnerabilityView.impactSubscore,
-                        vulnerabilityView.source, vulnerabilityView.severity, vulnerabilityView.accessVector,
-                        vulnerabilityView.accessComplexity, vulnerabilityView.authentication, vulnerabilityView.confidentialityImpact,
-                        vulnerabilityView.integrityImpact, vulnerabilityView.availabilityImpact, vulnerabilityWithRemediationView.remediationStatus,
-                        vulnerabilityWithRemediationView.remediationTargetAt, vulnerabilityWithRemediationView.remediationActualAt,
-                        vulnerabilityWithRemediationView.remediationCreatedAt, vulnerabilityWithRemediationView.remediationUpdatedAt,
-                        vulnerabilityView.meta.href, "NVD".equalsIgnoreCase(vulnerabilityView.source)
-                                ? "http://web.nvd.nist.gov/view/vuln/detail?vulnId=" + vulnerabilityView.vulnerabilityName : "");
-                transformedVulnerabilityWithRemediationViews.add(transformedVulnerabilityWithRemediationView);
-            });
-        }
+        vulnerabilityViews.forEach(vulnerabilityView -> {
+            VulnerabilityWithRemediationView vulnerabilityWithRemediationView = VulnerabilityUtil.getVulnerabilityRemediationView(
+                    vulnerabilityWithRemediationViews,
+                    vulnerabilityView.vulnerabilityName);
+            TransformedVulnerabilityWithRemediationView transformedVulnerabilityWithRemediationView = new TransformedVulnerabilityWithRemediationView(
+                    vulnerabilityView.vulnerabilityName, vulnerabilityView.cweId, "", vulnerabilityView.description,
+                    vulnerabilityWithRemediationView.vulnerabilityPublishedDate, vulnerabilityWithRemediationView.vulnerabilityUpdatedDate,
+                    vulnerabilityView.baseScore, vulnerabilityView.exploitabilitySubscore, vulnerabilityView.impactSubscore,
+                    vulnerabilityView.source, vulnerabilityView.severity, vulnerabilityView.accessVector,
+                    vulnerabilityView.accessComplexity, vulnerabilityView.authentication, vulnerabilityView.confidentialityImpact,
+                    vulnerabilityView.integrityImpact, vulnerabilityView.availabilityImpact, vulnerabilityWithRemediationView.remediationStatus,
+                    vulnerabilityWithRemediationView.remediationTargetAt, vulnerabilityWithRemediationView.remediationActualAt,
+                    vulnerabilityWithRemediationView.remediationCreatedAt, vulnerabilityWithRemediationView.remediationUpdatedAt,
+                    vulnerabilityView.meta.href, "NVD".equalsIgnoreCase(vulnerabilityView.source)
+                            ? "http://web.nvd.nist.gov/view/vuln/detail?vulnId=" + vulnerabilityView.vulnerabilityName : "");
+            transformedVulnerabilityWithRemediationViews.add(transformedVulnerabilityWithRemediationView);
+        });
         return transformedVulnerabilityWithRemediationViews;
-    }
-
-    private static Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityByComponent(List<VulnerableComponentView> vulnerabilities) {
-        Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents = new HashMap<>();
-        for (VulnerableComponentView vulnerability : vulnerabilities) {
-            String key = vulnerability.componentVersionLink;
-            if (groupByVulnerabilityComponents.containsKey(key)) {
-                List<VulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = groupByVulnerabilityComponents.get(key);
-                vulnerabilityWithRemediationViews.add(vulnerability.vulnerabilityWithRemediation);
-            } else {
-                List<VulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = new ArrayList<>();
-                vulnerabilityWithRemediationViews.add(vulnerability.vulnerabilityWithRemediation);
-                groupByVulnerabilityComponents.put(key, vulnerabilityWithRemediationViews);
-            }
-        }
-        return groupByVulnerabilityComponents;
-    }
-
-    private static VulnerabilityWithRemediationView getVulnerabilityRemediationView(List<VulnerabilityWithRemediationView> vulnerabilities,
-            String vulnerabiltyName) {
-        Predicate<VulnerabilityWithRemediationView> predicate = c -> c.vulnerabilityName.equalsIgnoreCase(vulnerabiltyName);
-        return vulnerabilities.stream().filter(predicate).findFirst().get();
     }
 }

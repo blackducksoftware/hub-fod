@@ -41,7 +41,6 @@ public final class TransformedMatchedFilesView {
     private final Set<MatchedFileUsageEnum> usages;
 
     public TransformedMatchedFilesView(FilePathView filePath, Set<MatchedFileUsageEnum> usages) {
-        super();
         this.filePath = filePath;
         this.usages = usages;
     }

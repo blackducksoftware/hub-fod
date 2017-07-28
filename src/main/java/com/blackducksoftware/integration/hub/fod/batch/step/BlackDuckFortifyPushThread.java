@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.function.Predicate;
 
 import org.apache.log4j.Logger;
 
@@ -53,6 +52,8 @@ import com.blackducksoftware.integration.hub.fod.batch.model.TransformedOriginVi
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedVulnerabilityWithRemediationView;
 import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
+import com.blackducksoftware.integration.hub.fod.utils.TransformViewsUtil;
+import com.blackducksoftware.integration.hub.fod.utils.VulnerabilityUtil;
 import com.blackducksoftware.integration.hub.model.view.MatchedFilesView;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomComponentView;
@@ -89,6 +90,7 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
     @Override
     public Boolean call() throws DateTimeParseException, IntegrationException, IllegalArgumentException,
             FileNotFoundException, UnsupportedEncodingException, IOException {
+
         logger.info("blackDuckFortifyMapper::" + blackDuckFortifyMapperGroup.toString());
         final List<HubProjectVersion> hubProjectVersions = blackDuckFortifyMapperGroup.getHubProjectVersion();
 
@@ -111,6 +113,7 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
             logger.debug("fortifyUploadRequest::" + jsonInString);
         }
         return true;
+
     }
 
     /**
@@ -184,28 +187,33 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
      * Iterate the hub project versions and find the vulnerabilities for Hub project version and transform the
      * vulnerability component view to CSV vulnerability view and merge all the vulnerabilities
      *
-     * @param hubProjectVersions
      * @param projectVersionItems
+     * @param hubProjectVersions
      * @return
-     * @return
-     * @throws IntegrationException
      * @throws IllegalArgumentException
+     * @throws IntegrationException
      */
     private FortifyUploadRequest mergeVulnerabilities(final List<ProjectVersionView> projectVersionItems, final List<HubProjectVersion> hubProjectVersions)
             throws IllegalArgumentException, IntegrationException {
         int index = 0;
         Map<String, ComponentVersionBom> componentVersionBoms = new HashMap<>();
+        // For each Hub project version, get the component version bom and add it to the fortify request
         for (ProjectVersionView projectVersionItem : projectVersionItems) {
             final List<VulnerableComponentView> vulnerabilities = HubServices.getVulnerabilityComponentViews(projectVersionItem);
-            final Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents = groupByVulnerabilityByComponent(vulnerabilities);
+            final Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents = VulnerabilityUtil
+                    .groupByVulnerabilityByComponent(vulnerabilities);
 
+            // Get all the components and its risk information for the project version
             final List<VersionBomComponentView> allComponents = HubServices.getAggregatedComponentLists(projectVersionItem);
 
+            // Remove the duplicate components across the Hub project version. In case of duplicate, the project name
+            // will be multiple projects, version name will be multiple versions and the project version url will be
+            // multiple project version links
             for (VersionBomComponentView component : allComponents) {
                 ComponentVersionBom componentVersionBom = getComponentVersionBom(component, hubProjectVersions.get(index),
-                        groupByVulnerabilityComponents);
+                        groupByVulnerabilityComponents, projectVersionItem.meta.href);
                 if (hubProjectVersions.size() > 1 && componentVersionBoms.containsKey(component.componentVersion)) {
-                    componentVersionBom = new ComponentVersionBom("Multiple Projects", "Multiple Versions",
+                    componentVersionBom = new ComponentVersionBom("Multiple Projects", "Multiple Versions", "Multiple Project Version Links",
                             componentVersionBom.getComponentID(), componentVersionBom.getComponentVersionID(), componentVersionBom.getComponentName(),
                             componentVersionBom.getComponentVersionName(), componentVersionBom.getComponent(), componentVersionBom.getComponentVersion(),
                             componentVersionBom.getTotalVulnerabilities(), componentVersionBom.getVulnerabilities(),
@@ -221,129 +229,49 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
             index++;
         }
 
-        FortifyUploadRequest fortifyUploadRequest = new FortifyUploadRequest(componentVersionBoms.size(), maxBomUpdatedDate,
-                new ArrayList<>(componentVersionBoms.values()));
-        return fortifyUploadRequest;
+        // Return the Fortify upload request
+        return new FortifyUploadRequest(componentVersionBoms.size(), maxBomUpdatedDate, new ArrayList<>(componentVersionBoms.values()));
     }
 
     /**
      * Get the Component version Bom for the given component
      *
      * @param component
+     * @param hubProjectVersion
      * @param groupByVulnerabilityComponents
+     * @param projectReleaseUrl
      * @return
      * @throws IllegalArgumentException
      * @throws IntegrationException
      */
     private ComponentVersionBom getComponentVersionBom(final VersionBomComponentView component, HubProjectVersion hubProjectVersion,
-            final Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents)
+            final Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents, String projectReleaseUrl)
             throws IllegalArgumentException, IntegrationException {
         List<MatchedFilesView> consolidatedMatchedFiles = new ArrayList<>();
+        // For each origin, get the matched files view
         for (OriginView origin : component.origins) {
             consolidatedMatchedFiles.addAll(HubServices.getMatchedFiles(origin));
         }
-        final List<TransformedMatchedFilesView> matchedFiles = transformMatchedFilesView(consolidatedMatchedFiles);
+        final List<TransformedMatchedFilesView> matchedFiles = TransformViewsUtil.transformMatchedFilesView(consolidatedMatchedFiles);
 
-        final List<TransformedOriginView> origins = transformOriginView(component.origins);
+        final List<TransformedOriginView> origins = TransformViewsUtil.transformOriginView(component.origins);
 
+        // Get the Component Version Vulnerability url for the component
         String componentVersionVulnerabilityUrl = HubServices.getComponentVersionVulnerabilityUrl(component.componentVersion);
+
+        // Get the Vulnerabilities for the component
         final List<VulnerabilityView> vulnerableComponentView = HubServices.getVulnerabilities(componentVersionVulnerabilityUrl);
-        final List<TransformedVulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = transformVulnerabilityRemediationView(
+        final List<TransformedVulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = TransformViewsUtil.transformVulnerabilityRemediationView(
                 vulnerableComponentView, groupByVulnerabilityComponents, component.componentVersion);
 
         String[] componentId = component.component.split("/");
         String[] componentVersionId = component.componentVersion.split("/");
-        return new ComponentVersionBom(hubProjectVersion.getHubProject(), hubProjectVersion.getHubProjectVersion(), componentId[componentId.length - 1],
-                componentVersionId[componentVersionId.length - 1], component.componentName, component.componentVersionName, component.component,
-                component.componentVersion, vulnerabilityWithRemediationViews.size(), vulnerabilityWithRemediationViews, matchedFiles.size(), matchedFiles,
-                component.licenses, origins, component.usages, component.releasedOn, component.licenseRiskProfile, component.securityRiskProfile,
-                component.versionRiskProfile, component.activityRiskProfile, component.operationalRiskProfile, component.activityData, component.reviewStatus,
-                component.reviewedDetails, component.approvalStatus);
-    }
-
-    /**
-     * It will convert Matched Files view to Matched File View
-     *
-     * @param matchedFilesView
-     * @return
-     */
-    private List<TransformedMatchedFilesView> transformMatchedFilesView(final List<MatchedFilesView> matchedFilesView) {
-        List<TransformedMatchedFilesView> transformedMatchedFilesViews = new ArrayList<>();
-        matchedFilesView.forEach(matchedFileview -> {
-            TransformedMatchedFilesView transformedMatchedFileView = new TransformedMatchedFilesView(matchedFileview.filePath,
-                    matchedFileview.usages);
-            transformedMatchedFilesViews.add(transformedMatchedFileView);
-        });
-        return transformedMatchedFilesViews;
-    }
-
-    /**
-     * It will convert Matched Files view to Matched File View
-     *
-     * @param matchedFilesView
-     * @return
-     */
-    private static List<TransformedOriginView> transformOriginView(final List<OriginView> originViews) {
-        List<TransformedOriginView> transformedOriginViews = new ArrayList<>();
-        originViews.forEach(originView -> {
-            TransformedOriginView transformedOriginView = new TransformedOriginView(originView.name, originView.externalNamespace,
-                    originView.externalId, originView.externalNamespaceDistribution);
-            transformedOriginViews.add(transformedOriginView);
-        });
-        return transformedOriginViews;
-    }
-
-    /**
-     * It will convert Matched Files view to Matched File View
-     *
-     * @param matchedFilesView
-     * @return
-     */
-    private List<TransformedVulnerabilityWithRemediationView> transformVulnerabilityRemediationView(
-            final List<VulnerabilityView> vulnerabilityViews,
-            Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents, String componentVersionLink) {
-        List<TransformedVulnerabilityWithRemediationView> transformedVulnerabilityWithRemediationViews = new ArrayList<>();
-        List<VulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = groupByVulnerabilityComponents.get(componentVersionLink);
-        if (vulnerabilityViews != null) {
-            vulnerabilityViews.forEach(vulnerabilityView -> {
-                VulnerabilityWithRemediationView vulnerabilityWithRemediationView = getVulnerabilityRemediationView(vulnerabilityWithRemediationViews,
-                        vulnerabilityView.vulnerabilityName);
-                TransformedVulnerabilityWithRemediationView transformedVulnerabilityWithRemediationView = new TransformedVulnerabilityWithRemediationView(
-                        vulnerabilityView.vulnerabilityName, vulnerabilityView.cweId, "", vulnerabilityView.description,
-                        vulnerabilityWithRemediationView.vulnerabilityPublishedDate, vulnerabilityWithRemediationView.vulnerabilityUpdatedDate,
-                        vulnerabilityView.baseScore, vulnerabilityView.exploitabilitySubscore, vulnerabilityView.impactSubscore,
-                        vulnerabilityView.source, vulnerabilityView.severity, vulnerabilityView.accessVector,
-                        vulnerabilityView.accessComplexity, vulnerabilityView.authentication, vulnerabilityView.confidentialityImpact,
-                        vulnerabilityView.integrityImpact, vulnerabilityView.availabilityImpact, vulnerabilityWithRemediationView.remediationStatus,
-                        vulnerabilityWithRemediationView.remediationTargetAt, vulnerabilityWithRemediationView.remediationActualAt,
-                        vulnerabilityWithRemediationView.remediationCreatedAt, vulnerabilityWithRemediationView.remediationUpdatedAt,
-                        vulnerabilityView.meta.href, "NVD".equalsIgnoreCase(vulnerabilityView.source)
-                                ? "http://web.nvd.nist.gov/view/vuln/detail?vulnId=" + vulnerabilityView.vulnerabilityName : "");
-                transformedVulnerabilityWithRemediationViews.add(transformedVulnerabilityWithRemediationView);
-            });
-        }
-        return transformedVulnerabilityWithRemediationViews;
-    }
-
-    private Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityByComponent(List<VulnerableComponentView> vulnerabilities) {
-        Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents = new HashMap<>();
-        for (VulnerableComponentView vulnerability : vulnerabilities) {
-            String key = vulnerability.componentVersionLink;
-            if (groupByVulnerabilityComponents.containsKey(key)) {
-                List<VulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = groupByVulnerabilityComponents.get(key);
-                vulnerabilityWithRemediationViews.add(vulnerability.vulnerabilityWithRemediation);
-            } else {
-                List<VulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = new ArrayList<>();
-                vulnerabilityWithRemediationViews.add(vulnerability.vulnerabilityWithRemediation);
-                groupByVulnerabilityComponents.put(key, vulnerabilityWithRemediationViews);
-            }
-        }
-        return groupByVulnerabilityComponents;
-    }
-
-    private VulnerabilityWithRemediationView getVulnerabilityRemediationView(List<VulnerabilityWithRemediationView> vulnerabilities,
-            String vulnerabiltyName) {
-        Predicate<VulnerabilityWithRemediationView> predicate = c -> c.vulnerabilityName.equalsIgnoreCase(vulnerabiltyName);
-        return vulnerabilities.stream().filter(predicate).findFirst().get();
+        // return the component version bom
+        return new ComponentVersionBom(hubProjectVersion.getHubProject(), hubProjectVersion.getHubProjectVersion(), projectReleaseUrl,
+                componentId[componentId.length - 1], componentVersionId[componentVersionId.length - 1], component.componentName, component.componentVersionName,
+                component.component, component.componentVersion, vulnerabilityWithRemediationViews.size(), vulnerabilityWithRemediationViews,
+                matchedFiles.size(), matchedFiles, component.licenses, origins, component.usages, component.releasedOn, component.licenseRiskProfile,
+                component.securityRiskProfile, component.versionRiskProfile, component.activityRiskProfile, component.operationalRiskProfile,
+                component.activityData, component.reviewStatus, component.reviewedDetails, component.approvalStatus);
     }
 }
