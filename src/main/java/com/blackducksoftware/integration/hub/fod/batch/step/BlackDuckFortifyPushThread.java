@@ -213,9 +213,8 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
                 ComponentVersionBom componentVersionBom = getComponentVersionBom(component, hubProjectVersions.get(index),
                         groupByVulnerabilityComponents, projectVersionItem.meta.href);
                 if (hubProjectVersions.size() > 1 && componentVersionBoms.containsKey(component.componentVersion)) {
-                    componentVersionBom = new ComponentVersionBom("Multiple Projects", "Multiple Versions", "Multiple Project Version Links",
-                            componentVersionBom.getComponentID(), componentVersionBom.getComponentVersionID(), componentVersionBom.getComponentName(),
-                            componentVersionBom.getComponentVersionName(), componentVersionBom.getComponent(), componentVersionBom.getComponentVersion(),
+                    componentVersionBom = new ComponentVersionBom("Multiple Projects", "Multiple Versions", "", componentVersionBom.getComponentName(),
+                            componentVersionBom.getComponentVersionName(), componentVersionBom.getComponentUrl(), componentVersionBom.getComponentVersionUrl(),
                             componentVersionBom.getTotalVulnerabilities(), componentVersionBom.getVulnerabilities(),
                             componentVersionBom.getTotalMatchedFilesCount(), componentVersionBom.getMatchedFiles(), componentVersionBom.getLicenses(),
                             componentVersionBom.getOrigins(), componentVersionBom.getUsages(), componentVersionBom.getReleasedOn(),
@@ -264,14 +263,12 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
         final List<TransformedVulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = TransformViewsUtil.transformVulnerabilityRemediationView(
                 vulnerableComponentView, groupByVulnerabilityComponents, component.componentVersion);
 
-        String[] componentId = component.component.split("/");
-        String[] componentVersionId = component.componentVersion.split("/");
         // return the component version bom
         return new ComponentVersionBom(hubProjectVersion.getHubProject(), hubProjectVersion.getHubProjectVersion(), projectReleaseUrl,
-                componentId[componentId.length - 1], componentVersionId[componentVersionId.length - 1], component.componentName, component.componentVersionName,
-                component.component, component.componentVersion, vulnerabilityWithRemediationViews.size(), vulnerabilityWithRemediationViews,
-                matchedFiles.size(), matchedFiles, component.licenses, origins, component.usages, component.releasedOn, component.licenseRiskProfile,
-                component.securityRiskProfile, component.versionRiskProfile, component.activityRiskProfile, component.operationalRiskProfile,
-                component.activityData, component.reviewStatus, component.reviewedDetails, component.approvalStatus);
+                component.componentName, component.componentVersionName, component.component, component.componentVersion,
+                vulnerabilityWithRemediationViews.size(), vulnerabilityWithRemediationViews, matchedFiles.size(), matchedFiles, component.licenses, origins,
+                component.usages, component.releasedOn, component.licenseRiskProfile, component.securityRiskProfile, component.versionRiskProfile,
+                component.activityRiskProfile, component.operationalRiskProfile, component.activityData, component.reviewStatus, component.reviewedDetails,
+                component.approvalStatus);
     }
 }

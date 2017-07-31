@@ -49,12 +49,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
         "projectName",
         "projectVersionName",
         "projectVersionUrl",
-        "componentID",
-        "componentVersionID",
         "componentName",
         "componentVersionName",
-        "component",
-        "componentVersion",
+        "componentUrl",
+        "componentVersionUrl",
         "totalVulnerabilities",
         "vulnerabilities",
         "totalMatchedFilesCount",
@@ -84,23 +82,17 @@ public class ComponentVersionBom {
     @JsonProperty("projectVersionUrl")
     private final String projectVersionUrl;
 
-    @JsonProperty("componentID")
-    private final String componentID;
-
-    @JsonProperty("componentVersionID")
-    private final String componentVersionID;
-
     @JsonProperty("componentName")
     private final String componentName;
 
     @JsonProperty("componentVersionName")
     private final String componentVersionName;
 
-    @JsonProperty("component")
-    private final String component;
+    @JsonProperty("componentUrl")
+    private final String componentUrl;
 
-    @JsonProperty("componentVersion")
-    private final String componentVersion;
+    @JsonProperty("componentVersionUrl")
+    private final String componentVersionUrl;
 
     @JsonProperty("totalVulnerabilities")
     private final int totalVulnerabilities;
@@ -153,22 +145,20 @@ public class ComponentVersionBom {
     @JsonProperty("approvalStatus")
     private final String approvalStatus;
 
-    public ComponentVersionBom(String projectName, String projectVersionName, String hubProjectVersionUrl, String componentID, String componentVersionID,
-            String componentName, String componentVersionName, String component, String componentVersion, int totalVulnerabilities,
-            List<TransformedVulnerabilityWithRemediationView> vulnerabilities, int totalMatchedFilesCount, List<TransformedMatchedFilesView> matchedFiles,
-            List<VersionBomLicenseView> licenses, List<TransformedOriginView> origins, List<MatchedFileUsageEnum> usages, Date releasedOn,
-            RiskProfileView licenseRiskProfile, RiskProfileView securityRiskProfile, RiskProfileView versionRiskProfile, RiskProfileView activityRiskProfile,
+    public ComponentVersionBom(String projectName, String projectVersionName, String hubProjectVersionUrl, String componentName, String componentVersionName,
+            String componentUrl, String componentVersionUrl, int totalVulnerabilities, List<TransformedVulnerabilityWithRemediationView> vulnerabilities,
+            int totalMatchedFilesCount, List<TransformedMatchedFilesView> matchedFiles, List<VersionBomLicenseView> licenses,
+            List<TransformedOriginView> origins, List<MatchedFileUsageEnum> usages, Date releasedOn, RiskProfileView licenseRiskProfile,
+            RiskProfileView securityRiskProfile, RiskProfileView versionRiskProfile, RiskProfileView activityRiskProfile,
             RiskProfileView operationalRiskProfile, ActivityDataView activityData, ReviewStatusEnum reviewStatus, ReviewedDetailsView reviewedDetails,
             String approvalStatus) {
         this.projectName = projectName;
         this.projectVersionName = projectVersionName;
         this.projectVersionUrl = hubProjectVersionUrl;
-        this.componentID = componentID;
-        this.componentVersionID = componentVersionID;
         this.componentName = componentName;
         this.componentVersionName = componentVersionName;
-        this.component = component;
-        this.componentVersion = componentVersion;
+        this.componentUrl = componentUrl;
+        this.componentVersionUrl = componentVersionUrl;
         this.totalVulnerabilities = totalVulnerabilities;
         this.vulnerabilities = vulnerabilities;
         this.totalMatchedFilesCount = totalMatchedFilesCount;
@@ -200,14 +190,6 @@ public class ComponentVersionBom {
         return projectVersionUrl;
     }
 
-    public String getComponentID() {
-        return componentID;
-    }
-
-    public String getComponentVersionID() {
-        return componentVersionID;
-    }
-
     public String getComponentName() {
         return componentName;
     }
@@ -216,12 +198,12 @@ public class ComponentVersionBom {
         return componentVersionName;
     }
 
-    public String getComponent() {
-        return component;
+    public String getComponentUrl() {
+        return componentUrl;
     }
 
-    public String getComponentVersion() {
-        return componentVersion;
+    public String getComponentVersionUrl() {
+        return componentVersionUrl;
     }
 
     public int getTotalVulnerabilities() {
@@ -295,14 +277,13 @@ public class ComponentVersionBom {
     @Override
     public String toString() {
         return "ComponentVersionBom [projectName=" + projectName + ", projectVersionName=" + projectVersionName + ", hubProjectVersionUrl="
-                + projectVersionUrl + ", componentID=" + componentID + ", componentVersionID=" + componentVersionID + ", componentName=" + componentName
-                + ", componentVersionName=" + componentVersionName + ", component=" + component + ", componentVersion=" + componentVersion
-                + ", totalVulnerabilities=" + totalVulnerabilities + ", vulnerabilities=" + vulnerabilities + ", totalMatchedFilesCount="
-                + totalMatchedFilesCount + ", matchedFiles=" + matchedFiles + ", licenses=" + licenses + ", origins=" + origins + ", usages=" + usages
-                + ", releasedOn=" + releasedOn + ", licenseRiskProfile=" + licenseRiskProfile + ", securityRiskProfile=" + securityRiskProfile
-                + ", versionRiskProfile=" + versionRiskProfile + ", activityRiskProfile=" + activityRiskProfile + ", operationalRiskProfile="
-                + operationalRiskProfile + ", activityData=" + activityData + ", reviewStatus=" + reviewStatus + ", reviewedDetails=" + reviewedDetails
-                + ", approvalStatus=" + approvalStatus + "]";
+                + projectVersionUrl + ", componentName=" + componentName + ", componentVersionName=" + componentVersionName + ", componentUrl=" + componentUrl
+                + ", componentVersionUrl=" + componentVersionUrl + ", totalVulnerabilities=" + totalVulnerabilities + ", vulnerabilities=" + vulnerabilities
+                + ", totalMatchedFilesCount=" + totalMatchedFilesCount + ", matchedFiles=" + matchedFiles + ", licenses=" + licenses + ", origins=" + origins
+                + ", usages=" + usages + ", releasedOn=" + releasedOn + ", licenseRiskProfile=" + licenseRiskProfile + ", securityRiskProfile="
+                + securityRiskProfile + ", versionRiskProfile=" + versionRiskProfile + ", activityRiskProfile=" + activityRiskProfile
+                + ", operationalRiskProfile=" + operationalRiskProfile + ", activityData=" + activityData + ", reviewStatus=" + reviewStatus
+                + ", reviewedDetails=" + reviewedDetails + ", approvalStatus=" + approvalStatus + "]";
     }
 
 }

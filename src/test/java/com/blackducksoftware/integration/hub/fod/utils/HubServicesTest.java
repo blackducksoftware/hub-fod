@@ -207,16 +207,13 @@ public class HubServicesTest extends TestCase {
                     vulnerableComponentView, groupByVulnerabilityComponents, component.componentVersion);
 
             // System.out.println("vulnerableComponentView::" + vulnerableComponentView);
-            String[] componentId = component.component.split("/");
-            String[] componentVersionId = component.componentVersion.split("/");
             componentVersionBoms.add(
-                    new ComponentVersionBom(PROJECT_NAME, VERSION_NAME, projectVersionItem.meta.href, componentId[componentId.length - 1],
-                            componentVersionId[componentVersionId.length - 1],
-                            component.componentName, component.componentVersionName, component.component, component.componentVersion,
-                            vulnerabilityWithRemediationViews.size(), vulnerabilityWithRemediationViews, matchedFiles.size(), matchedFiles, component.licenses,
-                            origins, component.usages, component.releasedOn, component.licenseRiskProfile, component.securityRiskProfile,
-                            component.versionRiskProfile, component.activityRiskProfile, component.operationalRiskProfile, component.activityData,
-                            component.reviewStatus, component.reviewedDetails, component.approvalStatus));
+                    new ComponentVersionBom(PROJECT_NAME, VERSION_NAME, projectVersionItem.meta.href, component.componentName, component.componentVersionName,
+                            component.component, component.componentVersion, vulnerabilityWithRemediationViews.size(), vulnerabilityWithRemediationViews,
+                            matchedFiles.size(), matchedFiles, component.licenses, origins, component.usages, component.releasedOn,
+                            component.licenseRiskProfile, component.securityRiskProfile, component.versionRiskProfile, component.activityRiskProfile,
+                            component.operationalRiskProfile, component.activityData, component.reviewStatus, component.reviewedDetails,
+                            component.approvalStatus));
             // System.out.println("componentVersionBom::" + componentVersionBom));
         }
 
