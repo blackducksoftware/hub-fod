@@ -77,7 +77,7 @@ public class HubServicesTest extends TestCase {
         VERSION_NAME = blackDuckFortifyMappers.get(0).getHubProjectVersion().get(0).getHubProjectVersion();
     }
 
-    /*@Test
+    @Test
     public void getProjectVersionsByProject() {
         System.out.println("Executing getProjectVersionsByProject");
         ProjectView project = null;
@@ -169,7 +169,7 @@ public class HubServicesTest extends TestCase {
         Date bomLastUpdatedAt = blackDuckFortifyJobConfig.getHubServices().getBomLastUpdatedAt(projectVersionItem);
         System.out.println("bomLastUpdatedAt::" + bomLastUpdatedAt);
         assertNotNull(bomLastUpdatedAt);
-    }*/
+    }
 
     @Test
     public void getAggregatedComponentInfo() throws IllegalArgumentException, IntegrationException {
