@@ -39,11 +39,15 @@ public final class TransformedOriginView {
 
     private final boolean externalNamespaceDistribution;
 
-    public TransformedOriginView(String name, String externalNamespace, String externalId, boolean externalNamespaceDistribution) {
+    private final String componentVersionOriginUrl;
+
+    public TransformedOriginView(String name, String externalNamespace, String externalId, boolean externalNamespaceDistribution,
+            String componentVersionOriginUrl) {
         this.name = name;
         this.externalNamespace = externalNamespace;
         this.externalId = externalId;
         this.externalNamespaceDistribution = externalNamespaceDistribution;
+        this.componentVersionOriginUrl = componentVersionOriginUrl;
     }
 
     public String getName() {
@@ -62,9 +66,14 @@ public final class TransformedOriginView {
         return externalNamespaceDistribution;
     }
 
+    public String getComponentVersionOriginUrl() {
+        return componentVersionOriginUrl;
+    }
+
     @Override
     public String toString() {
-        return "OriginView [name=" + name + ", externalNamespace=" + externalNamespace + ", externalId=" + externalId
-                + ", externalNamespaceDistribution=" + externalNamespaceDistribution + "]";
+        return "TransformedOriginView [name=" + name + ", externalNamespace=" + externalNamespace + ", externalId=" + externalId
+                + ", externalNamespaceDistribution=" + externalNamespaceDistribution + ", componentVersionOriginUrl=" + componentVersionOriginUrl + "]";
     }
+
 }

@@ -46,6 +46,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import com.blackducksoftware.integration.hub.fod.batch.BatchSchedulerConfig;
 import com.blackducksoftware.integration.hub.fod.batch.step.Initializer;
+import com.blackducksoftware.integration.hub.fod.service.FortifyApplicationApi;
+import com.blackducksoftware.integration.hub.fod.service.FortifyAuthenticationApi;
+import com.blackducksoftware.integration.hub.fod.service.FortifyUserApi;
+import com.blackducksoftware.integration.hub.fod.service.HubServices;
+import com.blackducksoftware.integration.hub.fod.service.RestConnectionHelper;
+import com.blackducksoftware.integration.hub.fod.utils.MappingParser;
 
 /**
  * Schedule the batch job
@@ -68,13 +74,63 @@ public class BlackDuckFortifyJobConfig implements JobExecutionListener {
     private StepBuilderFactory stepBuilderFactory;
 
     /**
+     * Created the bean for Fortify Application Api
+     *
+     * @return
+     */
+    @Bean
+    public FortifyApplicationApi getFortifyApplicationApi() {
+        return new FortifyApplicationApi();
+    }
+
+    /**
+     * Created the bean for Fortify Authentication Api
+     *
+     * @return
+     */
+    @Bean
+    public FortifyAuthenticationApi getFortifyAuthenticationApi() {
+        return new FortifyAuthenticationApi();
+    }
+
+    /**
+     * Created the bean to get the instance of Fortify User Api
+     *
+     * @return
+     */
+    @Bean
+    public FortifyUserApi getFortifyUserApi() {
+        return new FortifyUserApi();
+    }
+
+    /**
+     * Created the bean to get the instance of Hub Services
+     *
+     * @return
+     */
+    @Bean
+    public HubServices getHubServices() {
+        return new HubServices(RestConnectionHelper.createHubServicesFactory());
+    }
+
+    /**
+     * Created the bean to get the instance of Mapping Parser
+     *
+     * @return
+     */
+    @Bean
+    public MappingParser getMappingParser() {
+        return new MappingParser(getFortifyApplicationApi(), getFortifyAuthenticationApi(), getFortifyUserApi());
+    }
+
+    /**
      * Create new Initializer task
      *
      * @return Initializer
      */
     @Bean
     public Initializer getMappingParserTask() {
-        return new Initializer();
+        return new Initializer(getMappingParser(), getHubServices());
     }
 
     /**

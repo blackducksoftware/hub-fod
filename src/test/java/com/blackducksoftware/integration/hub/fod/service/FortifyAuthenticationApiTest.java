@@ -24,13 +24,17 @@
  */
 package com.blackducksoftware.integration.hub.fod.service;
 
+import java.io.IOException;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.fod.batch.TestApplication;
-import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
+import com.blackducksoftware.integration.hub.fod.batch.job.BlackDuckFortifyJobConfig;
 
 import junit.framework.TestCase;
 
@@ -38,10 +42,17 @@ import junit.framework.TestCase;
 @SpringBootTest(classes = { TestApplication.class })
 public class FortifyAuthenticationApiTest extends TestCase {
 
+    private BlackDuckFortifyJobConfig blackDuckFortifyJobConfig;
+
+    @Override
+    @Before
+    public void setUp() throws IOException, IntegrationException {
+        blackDuckFortifyJobConfig = new BlackDuckFortifyJobConfig();
+    }
+
     @Test
     public void getAuthenticationToken() throws Exception {
-        String accessToken = FortifyAuthenticationApi.getAuthenticatedToken("https://hpfod.com/tenant", "password",
-                PropertyConstants.getFortifyTenantId() + "\\" + PropertyConstants.getFortifyUserName(), PropertyConstants.getFortifyPassword());
+        String accessToken = blackDuckFortifyJobConfig.getFortifyAuthenticationApi().getAuthenticatedToken();
         System.out.println("accessToken::" + accessToken);
         assertNotNull(accessToken);
     }

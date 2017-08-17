@@ -32,14 +32,14 @@ import retrofit2.Response;
 
 /**
  * This class will hold the custom exception
- * 
+ *
  * @author smanikantan
  *
  */
 public final class FortifyExceptionUtil {
     private final static Logger logger = Logger.getLogger(FortifyExceptionUtil.class);
 
-    public static void verifyFortifyCustomException(int responseCode, String apiName) throws IntegrationException {
+    public static void verifyFortifyResponseCode(int responseCode, String apiName) throws IntegrationException {
         switch (responseCode) {
         case 200:
             logger.info("Response code::" + responseCode + " ~ " + apiName + " executed successfuly");
@@ -65,7 +65,7 @@ public final class FortifyExceptionUtil {
         }
     }
 
-    public static void verifyFortifyCustomException(int responseCode, String apiName, String errorMessage) throws IntegrationException {
+    public static void verifyFortifyResponseCode(int responseCode, String apiName, String errorMessage) throws IntegrationException {
         switch (responseCode) {
         case 200:
             logger.info("Response code::" + responseCode + " ~ " + apiName + " executed successfuly");
@@ -79,7 +79,7 @@ public final class FortifyExceptionUtil {
         }
     }
 
-    public static <T> void verifyFortifyCustomException(Response<T> response, String apiName) throws IntegrationException {
+    public static <T> void verifyFortifyResponseCode(Response<T> response, String apiName) throws IntegrationException {
         int responseCode = response.code();
         switch (responseCode) {
         case 200:

@@ -36,7 +36,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.fod.batch.TestApplication;
-import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
+import com.blackducksoftware.integration.hub.fod.batch.job.BlackDuckFortifyJobConfig;
 
 import junit.framework.TestCase;
 
@@ -46,16 +46,18 @@ import junit.framework.TestCase;
 public class FortifyUserApiTest extends TestCase {
     private String accessToken;
 
+    private BlackDuckFortifyJobConfig blackDuckFortifyJobConfig;
+
     @Override
     @Before
     public void setUp() throws IOException, IntegrationException {
-        accessToken = FortifyAuthenticationApi.getAuthenticatedToken("https://hpfod.com/tenant", "password",
-                PropertyConstants.getFortifyTenantId() + "\\" + PropertyConstants.getFortifyUserName(), PropertyConstants.getFortifyPassword());
+        blackDuckFortifyJobConfig = new BlackDuckFortifyJobConfig();
+        accessToken = blackDuckFortifyJobConfig.getFortifyAuthenticationApi().getAuthenticatedToken();
     }
 
     @Test
     public void getFortifyUser() throws IOException, IntegrationException {
-        long userId = FortifyUserApi.getFortifyUsers(accessToken, PropertyConstants.getFortifyUserName());
+        long userId = blackDuckFortifyJobConfig.getFortifyUserApi().getFortifyUsers(accessToken);
         System.out.println("userId::" + userId);
         assertTrue("Error while getting the Fortify User", userId != 0);
     }

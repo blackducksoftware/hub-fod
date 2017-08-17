@@ -39,6 +39,7 @@ import com.blackducksoftware.integration.hub.fod.batch.model.TransformedVulnerab
 import com.blackducksoftware.integration.hub.model.view.MatchedFilesView;
 import com.blackducksoftware.integration.hub.model.view.VulnerabilityView;
 import com.blackducksoftware.integration.hub.model.view.VulnerabilityWithRemediationView;
+import com.blackducksoftware.integration.hub.model.view.components.LinkView;
 import com.blackducksoftware.integration.hub.model.view.components.OriginView;
 
 /**
@@ -87,8 +88,15 @@ public final class TransformViewsUtil {
                     @Override
                     public TransformedOriginView get(ProvisionRequest<TransformedOriginView> request) {
                         OriginView originView = OriginView.class.cast(request.getSource());
+                        String componentVersionOriginUrl = null;
+                        for (LinkView link : originView.meta.links) {
+                            if ("origin".equalsIgnoreCase(link.rel)) {
+                                componentVersionOriginUrl = link.href.replaceAll(PropertyConstants.getHubServerUrl(), "");
+                                break;
+                            }
+                        }
                         return new TransformedOriginView(originView.name, originView.externalNamespace,
-                                originView.externalId, originView.externalNamespaceDistribution);
+                                originView.externalId, originView.externalNamespaceDistribution, componentVersionOriginUrl);
                     }
                 });
 

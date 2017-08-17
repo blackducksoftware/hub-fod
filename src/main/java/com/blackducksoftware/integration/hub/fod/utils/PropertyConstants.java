@@ -88,14 +88,14 @@ public class PropertyConstants {
     private static String proxyPassword;
 
     @Value("${proxy.password}")
-    public void setHubProxyPassword(String proxyPassword) {
+    public void setProxyPassword(String proxyPassword) {
         PropertyConstants.proxyPassword = proxyPassword;
     }
 
     private static String proxyIgnoreHosts;
 
     @Value("${proxy.ignore.hosts}")
-    public void setHubProxyNoHost(String proxyIgnoreHosts) {
+    public void setProxyIgnoreHosts(String proxyIgnoreHosts) {
         PropertyConstants.proxyIgnoreHosts = proxyIgnoreHosts;
     }
 
@@ -118,6 +118,34 @@ public class PropertyConstants {
     @Value("${fod.tenant.id}")
     public void setFortifyTenantId(String fortifyTenantId) {
         PropertyConstants.fortifyTenantId = fortifyTenantId;
+    }
+
+    private static String fortifyClientId;
+
+    @Value("${fod.client.id}")
+    public void setFortifyClientId(String fortifyClientId) {
+        PropertyConstants.fortifyClientId = fortifyClientId;
+    }
+
+    private static String fortifyClientSecret;
+
+    @Value("${fod.client.secret}")
+    public void setFortifyClientSecret(String fortifyClientSecret) {
+        PropertyConstants.fortifyClientSecret = fortifyClientSecret;
+    }
+
+    private static String fortifyGrantType;
+
+    @Value("${fod.grant.type}")
+    public void setFortifyGrantType(String fortifyGrantType) {
+        PropertyConstants.fortifyGrantType = fortifyGrantType;
+    }
+
+    private static String fortifyScope;
+
+    @Value("${fod.scope}")
+    public void setFortifyScope(String fortifyScope) {
+        PropertyConstants.fortifyScope = fortifyScope;
     }
 
     private static String fortifyServerUrl;
@@ -146,6 +174,13 @@ public class PropertyConstants {
     @Value("${maximum.thread.size}")
     public void setMaximumThreadSize(int maximumThreadSize) {
         PropertyConstants.maximumThreadSize = maximumThreadSize;
+    }
+
+    private static boolean batchJobStatusCheck;
+
+    @Value("${batch.job.status.check}")
+    public void setBatchJobStatusCheck(boolean batchJobStatusCheck) {
+        PropertyConstants.batchJobStatusCheck = batchJobStatusCheck;
     }
 
     public static String getHubUserName() {
@@ -196,6 +231,22 @@ public class PropertyConstants {
         return fortifyTenantId;
     }
 
+    public static String getFortifyClientId() {
+        return fortifyClientId;
+    }
+
+    public static String getFortifyClientSecret() {
+        return fortifyClientSecret;
+    }
+
+    public static String getFortifyGrantType() {
+        return fortifyGrantType;
+    }
+
+    public static String getFortifyScope() {
+        return fortifyScope;
+    }
+
     public static String getFortifyServerUrl() {
         return fortifyServerUrl;
     }
@@ -211,4 +262,9 @@ public class PropertyConstants {
     public static int getMaximumThreadSize() {
         return maximumThreadSize;
     }
+
+    public static boolean isBatchJobStatusCheck() {
+        return batchJobStatusCheck;
+    }
+
 }

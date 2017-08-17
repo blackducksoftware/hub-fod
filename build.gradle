@@ -5,7 +5,6 @@ buildscript {
 	repositories {
 		mavenLocal()
 		mavenCentral()
-		maven{url "https://plugins.gradle.org/m2/"}
 	}
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
@@ -22,7 +21,6 @@ plugins {
     id 'com.github.kt3k.coveralls' version '2.8.1'
 }
 allprojects{ 
-	//apply plugin: 'maven-publish' 
 	apply plugin: "com.jfrog.artifactory"
 }
 
@@ -49,9 +47,6 @@ startScripts {
 
 repositories{
 	mavenLocal()
-	maven {
-        url '/Users/smanikantan/.m2/repository'
-    }
 	mavenCentral()
 }
 
@@ -65,8 +60,7 @@ dependencies {
 	compile("org.springframework:spring-context-support")
 	compile("org.springframework:spring-core")
 	compile("org.springframework:spring-expression")
-	compile("com.blackducksoftware.integration:hub-common:13.1.2-SNAPSHOT")
-	//compile("javax.servlet:javax.servlet-api")
+	compile("com.blackducksoftware.integration:hub-common:13.3.0")
     compile("com.fasterxml.jackson.core:jackson-annotations:2.8.8")
     compile("com.google.code.gson:gson")
     compile("org.modelmapper:modelmapper:1.0.0")

@@ -1,7 +1,7 @@
 [
     {
-      "hubProject": "QaCrud SecurityCrudTest Project 20170629155302",
-      "hubProjectVersion": "Version To Test",
+      "hubProject": "Pong Matcher Rails",
+      "hubProjectVersion": "1.0",
       "fortifyApplication": "Hub-Fortify-Test",
       "fortifyApplicationVersion": "1.0"
     }

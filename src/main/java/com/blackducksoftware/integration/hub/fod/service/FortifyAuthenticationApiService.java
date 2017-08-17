@@ -40,7 +40,12 @@ import retrofit2.http.POST;
 public interface FortifyAuthenticationApiService {
     @FormUrlEncoded
     @POST("oauth/token")
-    Call<FortifyAuthenticationResponse> getAuthenticatedToken(@Field("scope") String scope, @Field("grant_type") String grantType,
+    Call<FortifyAuthenticationResponse> getAuthenticatedTokenByPassword(@Field("scope") String scope, @Field("grant_type") String grantType,
             @Field("username") String userName, @Field("password") String password);
+
+    @FormUrlEncoded
+    @POST("oauth/token")
+    Call<FortifyAuthenticationResponse> getAuthenticatedTokenByClientCredentials(@Field("scope") String scope, @Field("grant_type") String grantType,
+            @Field("client_id") String userName, @Field("client_secret") String password);
 
 }

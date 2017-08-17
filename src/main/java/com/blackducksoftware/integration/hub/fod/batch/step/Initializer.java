@@ -49,6 +49,7 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 
 import com.blackducksoftware.integration.hub.fod.batch.model.BlackDuckFortifyMapperGroup;
+import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.fod.utils.MappingParser;
 import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
 
@@ -61,11 +62,20 @@ import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
  */
 public class Initializer implements Tasklet, StepExecutionListener {
 
+    private final static Logger logger = Logger.getLogger(Initializer.class);
+
     private String startJobTimeStamp;
 
     private boolean jobStatus = false;
 
-    private final static Logger logger = Logger.getLogger(Initializer.class);
+    private final MappingParser mappingParser;
+
+    private final HubServices hubServices;
+
+    public Initializer(final MappingParser mappingParser, final HubServices hubServices) {
+        this.mappingParser = mappingParser;
+        this.hubServices = hubServices;
+    }
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
@@ -73,7 +83,7 @@ public class Initializer implements Tasklet, StepExecutionListener {
         logger.debug("Found Mapping file:: " + PropertyConstants.getMappingJsonPath());
 
         // Create the mapping between Hub and Fortify
-        final List<BlackDuckFortifyMapperGroup> groupMap = MappingParser.createMapping(PropertyConstants.getMappingJsonPath());
+        final List<BlackDuckFortifyMapperGroup> groupMap = mappingParser.createMapping(PropertyConstants.getMappingJsonPath());
         logger.info("blackDuckFortifyMappers :" + groupMap.toString());
 
         // Create the threads for parallel processing
@@ -81,7 +91,7 @@ public class Initializer implements Tasklet, StepExecutionListener {
         List<Future<?>> futures = new ArrayList<>(groupMap.size());
 
         for (BlackDuckFortifyMapperGroup blackDuckFortifyMapperGroup : groupMap) {
-            futures.add(exec.submit(new BlackDuckFortifyPushThread(blackDuckFortifyMapperGroup)));
+            futures.add(exec.submit(new BlackDuckFortifyPushThread(blackDuckFortifyMapperGroup, hubServices)));
         }
         for (Future<?> f : futures) {
             f.get(); // wait for a processor to complete

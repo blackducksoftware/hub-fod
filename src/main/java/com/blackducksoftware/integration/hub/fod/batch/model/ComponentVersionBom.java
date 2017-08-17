@@ -46,9 +46,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
-        "projectName",
-        "projectVersionName",
-        "projectVersionUrl",
         "componentName",
         "componentVersionName",
         "componentUrl",
@@ -72,15 +69,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
         "approvalStatus"
 })
 public class ComponentVersionBom {
-
-    @JsonProperty("projectName")
-    private final String projectName;
-
-    @JsonProperty("projectVersionName")
-    private final String projectVersionName;
-
-    @JsonProperty("projectVersionUrl")
-    private final String projectVersionUrl;
 
     @JsonProperty("componentName")
     private final String componentName;
@@ -145,16 +133,12 @@ public class ComponentVersionBom {
     @JsonProperty("approvalStatus")
     private final String approvalStatus;
 
-    public ComponentVersionBom(String projectName, String projectVersionName, String hubProjectVersionUrl, String componentName, String componentVersionName,
-            String componentUrl, String componentVersionUrl, int totalVulnerabilities, List<TransformedVulnerabilityWithRemediationView> vulnerabilities,
-            int totalMatchedFilesCount, List<TransformedMatchedFilesView> matchedFiles, List<VersionBomLicenseView> licenses,
-            List<TransformedOriginView> origins, List<MatchedFileUsageEnum> usages, Date releasedOn, RiskProfileView licenseRiskProfile,
-            RiskProfileView securityRiskProfile, RiskProfileView versionRiskProfile, RiskProfileView activityRiskProfile,
+    public ComponentVersionBom(String componentName, String componentVersionName, String componentUrl, String componentVersionUrl, int totalVulnerabilities,
+            List<TransformedVulnerabilityWithRemediationView> vulnerabilities, int totalMatchedFilesCount, List<TransformedMatchedFilesView> matchedFiles,
+            List<VersionBomLicenseView> licenses, List<TransformedOriginView> origins, List<MatchedFileUsageEnum> usages, Date releasedOn,
+            RiskProfileView licenseRiskProfile, RiskProfileView securityRiskProfile, RiskProfileView versionRiskProfile, RiskProfileView activityRiskProfile,
             RiskProfileView operationalRiskProfile, ActivityDataView activityData, ReviewStatusEnum reviewStatus, ReviewedDetailsView reviewedDetails,
             String approvalStatus) {
-        this.projectName = projectName;
-        this.projectVersionName = projectVersionName;
-        this.projectVersionUrl = hubProjectVersionUrl;
         this.componentName = componentName;
         this.componentVersionName = componentVersionName;
         this.componentUrl = componentUrl;
@@ -176,18 +160,6 @@ public class ComponentVersionBom {
         this.reviewStatus = reviewStatus;
         this.reviewedDetails = reviewedDetails;
         this.approvalStatus = approvalStatus;
-    }
-
-    public String getProjectName() {
-        return projectName;
-    }
-
-    public String getProjectVersionName() {
-        return projectVersionName;
-    }
-
-    public String getHubProjectVersionUrl() {
-        return projectVersionUrl;
     }
 
     public String getComponentName() {
@@ -276,8 +248,7 @@ public class ComponentVersionBom {
 
     @Override
     public String toString() {
-        return "ComponentVersionBom [projectName=" + projectName + ", projectVersionName=" + projectVersionName + ", hubProjectVersionUrl="
-                + projectVersionUrl + ", componentName=" + componentName + ", componentVersionName=" + componentVersionName + ", componentUrl=" + componentUrl
+        return "ComponentVersionBom [componentName=" + componentName + ", componentVersionName=" + componentVersionName + ", componentUrl=" + componentUrl
                 + ", componentVersionUrl=" + componentVersionUrl + ", totalVulnerabilities=" + totalVulnerabilities + ", vulnerabilities=" + vulnerabilities
                 + ", totalMatchedFilesCount=" + totalMatchedFilesCount + ", matchedFiles=" + matchedFiles + ", licenses=" + licenses + ", origins=" + origins
                 + ", usages=" + usages + ", releasedOn=" + releasedOn + ", licenseRiskProfile=" + licenseRiskProfile + ", securityRiskProfile="

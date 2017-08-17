@@ -45,7 +45,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * This class is used to store all the service methods related to Fortify application api
- * 
+ *
  * @author smanikantan
  *
  */
@@ -75,7 +75,7 @@ public class FortifyApplicationApi extends FortifyService {
      * @throws IOException
      * @throws IntegrationException
      */
-    public static long getFortifyApplication(String accessToken, String applicationName) throws IOException, IntegrationException {
+    public long getFortifyApplication(String accessToken, String applicationName) throws IOException, IntegrationException {
 
         Call<FortifyApplications> fortifyApplicationResponseCall = apiService.getFortifyApplications(BEARER + accessToken,
                 APPLICATION_FILTERS + applicationName);
@@ -83,7 +83,7 @@ public class FortifyApplicationApi extends FortifyService {
         long applicationId = 0;
         try {
             fortifyApplicationResponse = fortifyApplicationResponseCall.execute();
-            FortifyExceptionUtil.verifyFortifyCustomException(fortifyApplicationResponse, "Get Fortify Application Api");
+            FortifyExceptionUtil.verifyFortifyResponseCode(fortifyApplicationResponse.code(), "Get Fortify Application Api");
             for (FortifyApplication fortifyApplication : fortifyApplicationResponse.body().getFortifyApplication()) {
                 if (fortifyApplication.getApplicationName().equalsIgnoreCase(applicationName)) {
                     return fortifyApplication.getApplicationId();
@@ -106,7 +106,7 @@ public class FortifyApplicationApi extends FortifyService {
      * @throws IOException
      * @throws IntegrationException
      */
-    public static long getFortifyApplicationReleases(String accessToken, long applicationId, String releaseName) throws IOException, IntegrationException {
+    public long getFortifyApplicationReleases(String accessToken, long applicationId, String releaseName) throws IOException, IntegrationException {
 
         Call<FortifyApplicationReleases> fortifyApplicationReleaseResponseCall = apiService.getFortifyApplicationReleases(BEARER + accessToken, applicationId,
                 RELEASE_FILTERS + releaseName);
@@ -114,7 +114,7 @@ public class FortifyApplicationApi extends FortifyService {
         long releaseId = 0;
         try {
             fortifyApplicationReleaseResponse = fortifyApplicationReleaseResponseCall.execute();
-            FortifyExceptionUtil.verifyFortifyCustomException(fortifyApplicationReleaseResponse, "Get Fortify Application Release Api");
+            FortifyExceptionUtil.verifyFortifyResponseCode(fortifyApplicationReleaseResponse, "Get Fortify Application Release Api");
             for (FortifyApplicationRelease fortifyApplicationRelease : fortifyApplicationReleaseResponse.body().getFortifyApplicationReleases()) {
                 if (fortifyApplicationRelease.getReleaseName().equalsIgnoreCase(releaseName)) {
                     return fortifyApplicationRelease.getReleaseId();
@@ -136,13 +136,13 @@ public class FortifyApplicationApi extends FortifyService {
      * @throws IOException
      * @throws IntegrationException
      */
-    public static long createFortifyApplicationRelease(String accessToken, FortifyApplication fortifyApplication) throws IOException, IntegrationException {
+    public long createFortifyApplicationRelease(String accessToken, FortifyApplication fortifyApplication) throws IOException, IntegrationException {
 
         Call<FortifyApplication> fortifyApplicationReleaseResponseCall = apiService.createFortifyApplicationRelease(BEARER + accessToken, fortifyApplication);
         Response<FortifyApplication> fortifyApplicationReleaseResponse;
         try {
             fortifyApplicationReleaseResponse = fortifyApplicationReleaseResponseCall.execute();
-            FortifyExceptionUtil.verifyFortifyCustomException(fortifyApplicationReleaseResponse, "Create Fortify Application Release Api");
+            FortifyExceptionUtil.verifyFortifyResponseCode(fortifyApplicationReleaseResponse, "Create Fortify Application Release Api");
         } catch (IOException e) {
             logger.error("Error while creating the fortify application", e);
             throw new IOException("Error while creating the fortify application", e);
@@ -159,7 +159,7 @@ public class FortifyApplicationApi extends FortifyService {
      * @throws IOException
      * @throws IntegrationException
      */
-    public static long createFortifyApplicationRelease(String accessToken, FortifyApplicationRelease fortifyApplicationRelease)
+    public long createFortifyApplicationRelease(String accessToken, FortifyApplicationRelease fortifyApplicationRelease)
             throws IOException, IntegrationException {
 
         Call<FortifyApplicationRelease> fortifyApplicationReleaseResponseCall = apiService.createFortifyApplicationRelease(BEARER + accessToken,
@@ -167,7 +167,7 @@ public class FortifyApplicationApi extends FortifyService {
         Response<FortifyApplicationRelease> fortifyApplicationReleaseResponse;
         try {
             fortifyApplicationReleaseResponse = fortifyApplicationReleaseResponseCall.execute();
-            FortifyExceptionUtil.verifyFortifyCustomException(fortifyApplicationReleaseResponse, "Create Fortify Release Api");
+            FortifyExceptionUtil.verifyFortifyResponseCode(fortifyApplicationReleaseResponse, "Create Fortify Release Api");
         } catch (IOException e) {
             logger.error("Error while retrieving the fortify application id", e);
             throw new IOException("Error while retrieving the fortify application id", e);
@@ -183,7 +183,7 @@ public class FortifyApplicationApi extends FortifyService {
      * @return
      * @throws IOException
      */
-    public static boolean deleteFortifyApplicationReleases(String accessToken, long applicationId) throws IOException {
+    public boolean deleteFortifyApplicationReleases(String accessToken, long applicationId) throws IOException {
 
         Call<ResponseBody> fortifyApplicationReleaseResponseCall = apiService.deleteFortifyApplicationReleases(BEARER + accessToken, applicationId);
         Response<ResponseBody> fortifyApplicationReleaseResponse;

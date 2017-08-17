@@ -40,13 +40,28 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
         "totalCount",
-        "scanCreatedAt",
-        "scanUpdatedAt",
+        "hubServerUrl",
+        "projectName",
+        "projectVersionName",
+        "projectVersionUrl",
+        "bomUpdatedAt",
         "items"
 })
 public final class FortifyUploadRequest {
     @JsonProperty("totalCount")
     private final int totalCount;
+
+    @JsonProperty("hubServerUrl")
+    private final String hubServerUrl;
+
+    @JsonProperty("projectName")
+    private final String projectName;
+
+    @JsonProperty("projectVersionName")
+    private final String projectVersionName;
+
+    @JsonProperty("projectVersionUrl")
+    private final String projectVersionUrl;
 
     @JsonProperty("bomUpdatedAt")
     private final Date bomUpdatedAt;
@@ -54,14 +69,35 @@ public final class FortifyUploadRequest {
     @JsonProperty("items")
     private final List<ComponentVersionBom> items;
 
-    public FortifyUploadRequest(int totalCount, Date bomUpdatedAt, List<ComponentVersionBom> items) {
+    public FortifyUploadRequest(int totalCount, String hubServerUrl, String projectName, String projectVersionName, String projectVersionUrl, Date bomUpdatedAt,
+            List<ComponentVersionBom> items) {
         this.totalCount = totalCount;
+        this.hubServerUrl = hubServerUrl;
+        this.projectName = projectName;
+        this.projectVersionName = projectVersionName;
+        this.projectVersionUrl = projectVersionUrl;
         this.bomUpdatedAt = bomUpdatedAt;
         this.items = items;
     }
 
     public int getTotalCount() {
         return totalCount;
+    }
+
+    public String getHubServerUrl() {
+        return hubServerUrl;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public String getProjectVersionName() {
+        return projectVersionName;
+    }
+
+    public String getProjectVersionUrl() {
+        return projectVersionUrl;
     }
 
     public Date getBomUpdatedAt() {
@@ -74,7 +110,8 @@ public final class FortifyUploadRequest {
 
     @Override
     public String toString() {
-        return "FortifyUploadRequest [totalCount=" + totalCount + ", bomUpdatedAt=" + bomUpdatedAt + ", items=" + items + "]";
+        return "FortifyUploadRequest [totalCount=" + totalCount + ", hubServerUrl=" + hubServerUrl + ", projectName=" + projectName + ", projectVersionName="
+                + projectVersionName + ", projectVersionUrl=" + projectVersionUrl + ", bomUpdatedAt=" + bomUpdatedAt + ", items=" + items + "]";
     }
 
 }

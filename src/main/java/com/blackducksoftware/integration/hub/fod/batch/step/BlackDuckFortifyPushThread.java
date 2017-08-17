@@ -61,6 +61,7 @@ import com.blackducksoftware.integration.hub.model.view.VulnerabilityView;
 import com.blackducksoftware.integration.hub.model.view.VulnerabilityWithRemediationView;
 import com.blackducksoftware.integration.hub.model.view.VulnerableComponentView;
 import com.blackducksoftware.integration.hub.model.view.components.OriginView;
+import com.blackducksoftware.integration.hub.model.view.components.VersionBomLicenseView;
 import com.google.gson.Gson;
 
 /**
@@ -83,8 +84,11 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
 
     private final static Logger logger = Logger.getLogger(BlackDuckFortifyPushThread.class);
 
-    public BlackDuckFortifyPushThread(BlackDuckFortifyMapperGroup blackDuckFortifyMapperGroup) {
+    private final HubServices hubServices;
+
+    public BlackDuckFortifyPushThread(final BlackDuckFortifyMapperGroup blackDuckFortifyMapperGroup, final HubServices hubServices) {
         this.blackDuckFortifyMapperGroup = blackDuckFortifyMapperGroup;
+        this.hubServices = hubServices;
     }
 
     @Override
@@ -100,11 +104,13 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
         // Get the project version view from Hub and calculate the max BOM updated date
         final List<ProjectVersionView> projectVersionItems = getProjectVersionItemsAndMaxBomUpdatedDate(hubProjectVersions);
         logger.info("Compare Dates: "
-                + ((getLastSuccessfulJobRunTime != null && maxBomUpdatedDate.after(getLastSuccessfulJobRunTime)) || (getLastSuccessfulJobRunTime == null)));
+                + ((getLastSuccessfulJobRunTime != null && maxBomUpdatedDate.after(getLastSuccessfulJobRunTime)) || (getLastSuccessfulJobRunTime == null)
+                        || (PropertyConstants.isBatchJobStatusCheck())));
         logger.debug("getLastSuccessfulJobRunTime::" + getLastSuccessfulJobRunTime);
         logger.debug("maxBomUpdatedDate:: " + maxBomUpdatedDate);
 
-        if ((getLastSuccessfulJobRunTime != null && maxBomUpdatedDate.after(getLastSuccessfulJobRunTime)) || (getLastSuccessfulJobRunTime == null)) {
+        if ((getLastSuccessfulJobRunTime != null && maxBomUpdatedDate.after(getLastSuccessfulJobRunTime)) || (getLastSuccessfulJobRunTime == null)
+                || (!PropertyConstants.isBatchJobStatusCheck())) {
             // Get the vulnerabilities for all Hub project versions and merge it
             FortifyUploadRequest fortifyUploadRequest = mergeVulnerabilities(projectVersionItems, hubProjectVersions);
             Gson gson = new Gson();
@@ -171,9 +177,9 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
             String projectVersion = hubProjectVersion.getHubProjectVersion();
 
             // Get the project version
-            final ProjectVersionView projectVersionItem = HubServices.getProjectVersion(projectName, projectVersion);
+            final ProjectVersionView projectVersionItem = hubServices.getProjectVersion(projectName, projectVersion);
             projectVersionItems.add(projectVersionItem);
-            Date bomUpdatedValueAt = HubServices.getBomLastUpdatedAt(projectVersionItem);
+            Date bomUpdatedValueAt = hubServices.getBomLastUpdatedAt(projectVersionItem);
 
             if (maxBomUpdatedDate == null || bomUpdatedValueAt.after(maxBomUpdatedDate)) {
                 maxBomUpdatedDate = bomUpdatedValueAt;
@@ -195,25 +201,23 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
      */
     private FortifyUploadRequest mergeVulnerabilities(final List<ProjectVersionView> projectVersionItems, final List<HubProjectVersion> hubProjectVersions)
             throws IllegalArgumentException, IntegrationException {
-        int index = 0;
         Map<String, ComponentVersionBom> componentVersionBoms = new HashMap<>();
         // For each Hub project version, get the component version bom and add it to the fortify request
         for (ProjectVersionView projectVersionItem : projectVersionItems) {
-            final List<VulnerableComponentView> vulnerabilities = HubServices.getVulnerabilityComponentViews(projectVersionItem);
+            logger.info("Getting Hub Aggregated Bom info for project::" + hubProjectVersions.get(0).getHubProject() + ", version::"
+                    + hubProjectVersions.get(0).getHubProjectVersion());
+            final List<VulnerableComponentView> vulnerabilities = hubServices.getVulnerabilityComponentViews(projectVersionItem);
             final Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents = VulnerabilityUtil
                     .groupByVulnerabilityByComponent(vulnerabilities);
 
             // Get all the components and its risk information for the project version
-            final List<VersionBomComponentView> allComponents = HubServices.getAggregatedComponentLists(projectVersionItem);
+            final List<VersionBomComponentView> allComponents = hubServices.getAggregatedComponentLists(projectVersionItem);
 
-            // Remove the duplicate components across the Hub project version. In case of duplicate, the project name
-            // will be multiple projects, version name will be multiple versions and the project version url will be
-            // multiple project version links
+            // Remove the duplicate components across the Hub project version.
             for (VersionBomComponentView component : allComponents) {
-                ComponentVersionBom componentVersionBom = getComponentVersionBom(component, hubProjectVersions.get(index),
-                        groupByVulnerabilityComponents, projectVersionItem.meta.href);
+                ComponentVersionBom componentVersionBom = getComponentVersionBom(component, groupByVulnerabilityComponents);
                 if (hubProjectVersions.size() > 1 && componentVersionBoms.containsKey(component.componentVersion)) {
-                    componentVersionBom = new ComponentVersionBom("Multiple Projects", "Multiple Versions", "", componentVersionBom.getComponentName(),
+                    componentVersionBom = new ComponentVersionBom(componentVersionBom.getComponentName(),
                             componentVersionBom.getComponentVersionName(), componentVersionBom.getComponentUrl(), componentVersionBom.getComponentVersionUrl(),
                             componentVersionBom.getTotalVulnerabilities(), componentVersionBom.getVulnerabilities(),
                             componentVersionBom.getTotalMatchedFilesCount(), componentVersionBom.getMatchedFiles(), componentVersionBom.getLicenses(),
@@ -225,11 +229,12 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
                 }
                 componentVersionBoms.put(component.componentVersion, componentVersionBom);
             }
-            index++;
         }
 
         // Return the Fortify upload request
-        return new FortifyUploadRequest(componentVersionBoms.size(), maxBomUpdatedDate, new ArrayList<>(componentVersionBoms.values()));
+        return new FortifyUploadRequest(componentVersionBoms.size(), PropertyConstants.getHubServerUrl(), hubProjectVersions.get(0).getHubProject(),
+                hubProjectVersions.get(0).getHubProjectVersion(), projectVersionItems.get(0).meta.href.replaceAll(PropertyConstants.getHubServerUrl(), ""),
+                maxBomUpdatedDate, new ArrayList<>(componentVersionBoms.values()));
     }
 
     /**
@@ -243,32 +248,50 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
      * @throws IllegalArgumentException
      * @throws IntegrationException
      */
-    private ComponentVersionBom getComponentVersionBom(final VersionBomComponentView component, HubProjectVersion hubProjectVersion,
-            final Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents, String projectReleaseUrl)
+    private ComponentVersionBom getComponentVersionBom(final VersionBomComponentView component,
+            final Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents)
             throws IllegalArgumentException, IntegrationException {
+        logger.debug("Getting Component Version Bom for component::" + component.componentName + ", version::" + component.componentVersionName);
         List<MatchedFilesView> consolidatedMatchedFiles = new ArrayList<>();
         // For each origin, get the matched files view
         for (OriginView origin : component.origins) {
-            consolidatedMatchedFiles.addAll(HubServices.getMatchedFiles(origin));
+            consolidatedMatchedFiles.addAll(hubServices.getMatchedFiles(origin));
         }
         final List<TransformedMatchedFilesView> matchedFiles = TransformViewsUtil.transformMatchedFilesView(consolidatedMatchedFiles);
 
         final List<TransformedOriginView> origins = TransformViewsUtil.transformOriginView(component.origins);
 
         // Get the Component Version Vulnerability url for the component
-        String componentVersionVulnerabilityUrl = HubServices.getComponentVersionVulnerabilityUrl(component.componentVersion);
+        String componentVersionVulnerabilityUrl = hubServices.getComponentVersionVulnerabilityUrl(component.componentVersion);
 
         // Get the Vulnerabilities for the component
-        final List<VulnerabilityView> vulnerableComponentView = HubServices.getVulnerabilities(componentVersionVulnerabilityUrl);
+        final List<VulnerabilityView> vulnerableComponentView = hubServices.getVulnerabilities(componentVersionVulnerabilityUrl);
         final List<TransformedVulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = TransformViewsUtil.transformVulnerabilityRemediationView(
                 vulnerableComponentView, groupByVulnerabilityComponents, component.componentVersion);
 
         // return the component version bom
-        return new ComponentVersionBom(hubProjectVersion.getHubProject(), hubProjectVersion.getHubProjectVersion(), projectReleaseUrl,
-                component.componentName, component.componentVersionName, component.component, component.componentVersion,
-                vulnerabilityWithRemediationViews.size(), vulnerabilityWithRemediationViews, matchedFiles.size(), matchedFiles, component.licenses, origins,
-                component.usages, component.releasedOn, component.licenseRiskProfile, component.securityRiskProfile, component.versionRiskProfile,
-                component.activityRiskProfile, component.operationalRiskProfile, component.activityData, component.reviewStatus, component.reviewedDetails,
-                component.approvalStatus);
+        return new ComponentVersionBom(component.componentName, component.componentVersionName, component.component, component.componentVersion,
+                vulnerabilityWithRemediationViews.size(), vulnerabilityWithRemediationViews, matchedFiles.size(), matchedFiles,
+                removeHubServerUrlFromLicense(component.licenses), origins, component.usages, component.releasedOn, component.licenseRiskProfile,
+                component.securityRiskProfile, component.versionRiskProfile, component.activityRiskProfile, component.operationalRiskProfile,
+                component.activityData, component.reviewStatus, component.reviewedDetails, component.approvalStatus);
+    }
+
+    /**
+     * Replace the Hub Server Url in License with none
+     *
+     * @param licenses
+     * @return
+     */
+    private List<VersionBomLicenseView> removeHubServerUrlFromLicense(List<VersionBomLicenseView> licenses) {
+        // Replace the Hub Server Url in License with none
+        for (int i = 0; licenses != null && i < licenses.size(); i++) {
+            for (int j = 0; licenses.get(i).licenses != null && j < licenses.get(i).licenses.size(); j++) {
+                if (licenses.get(i).licenses.get(j).license != null)
+                    licenses.get(i).licenses.get(j).license = licenses.get(i).licenses.get(j).license.replaceAll(PropertyConstants.getHubServerUrl(), "");
+            }
+        }
+
+        return licenses;
     }
 }

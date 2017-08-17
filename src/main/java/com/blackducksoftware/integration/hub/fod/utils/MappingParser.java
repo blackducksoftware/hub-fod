@@ -59,6 +59,19 @@ public final class MappingParser {
 
     private final static Logger logger = Logger.getLogger(MappingParser.class);
 
+    private final FortifyApplicationApi fortifyApplicationApi;
+
+    private final FortifyAuthenticationApi fortifyAuthenticationApi;
+
+    private final FortifyUserApi fortifyUserApi;
+
+    public MappingParser(final FortifyApplicationApi fortifyApplicationApi, final FortifyAuthenticationApi fortifyAuthenticationApi,
+            final FortifyUserApi fortifyUserApi) {
+        this.fortifyApplicationApi = fortifyApplicationApi;
+        this.fortifyAuthenticationApi = fortifyAuthenticationApi;
+        this.fortifyUserApi = fortifyUserApi;
+    }
+
     /**
      * Creates a list a mappingObject read from the mapping.json file
      *
@@ -68,7 +81,7 @@ public final class MappingParser {
      * @throws IOException
      * @throws IntegrationException
      */
-    public static List<BlackDuckFortifyMapperGroup> createMapping(String filePath) throws JsonIOException, IOException, IntegrationException {
+    public List<BlackDuckFortifyMapperGroup> createMapping(String filePath) throws JsonIOException, IOException, IntegrationException {
         List<BlackDuckFortifyMapper> mapping;
         try {
             Gson gson = new Gson();
@@ -97,44 +110,17 @@ public final class MappingParser {
      * @throws IOException
      * @throws IntegrationException
      */
-    private static List<BlackDuckFortifyMapperGroup> buildGroupedMappings(List<BlackDuckFortifyMapper> blackDuckFortifyMappers)
+    private List<BlackDuckFortifyMapperGroup> buildGroupedMappings(List<BlackDuckFortifyMapper> blackDuckFortifyMappers)
             throws IOException, IntegrationException {
 
         Map<String, BlackDuckFortifyMapperGroup> mappings = new HashMap<>();
         try {
             // Get the bearer token
-            String accessToken = FortifyAuthenticationApi.getAuthenticatedToken("https://hpfod.com/tenant", "password",
-                    PropertyConstants.getFortifyTenantId() + "\\" + PropertyConstants.getFortifyUserName(), PropertyConstants.getFortifyPassword());
+            String accessToken = fortifyAuthenticationApi.getAuthenticatedToken();
 
             for (BlackDuckFortifyMapper blackDuckFortifyMapper : blackDuckFortifyMappers) {
-                long applicationId = 0;
-                long releaseId = 0;
-                List<HubProjectVersion> hubProjectVersions = new ArrayList<>();
-
-                BlackDuckFortifyMapperGroup blackDuckFortifyMapperGroup;
-
-                HubProjectVersion hubProjectVersion = new HubProjectVersion(blackDuckFortifyMapper.getHubProject(),
-                        blackDuckFortifyMapper.getHubProjectVersion());
-
                 String key = blackDuckFortifyMapper.getFortifyApplication() + '_' + blackDuckFortifyMapper.getFortifyApplicationVersion();
-
-                if (mappings.containsKey(key)) {
-                    blackDuckFortifyMapperGroup = mappings.get(key);
-                    hubProjectVersions = blackDuckFortifyMapperGroup.getHubProjectVersion();
-                    applicationId = blackDuckFortifyMapperGroup.getFortifyApplicationId();
-                    releaseId = blackDuckFortifyMapperGroup.getFortifyReleaseId();
-                } else {
-                    applicationId = getFortifyApplicationId(blackDuckFortifyMapper, accessToken);
-                    releaseId = getFortifyReleaseId(blackDuckFortifyMapper, accessToken, applicationId);
-                }
-
-                hubProjectVersions.add(hubProjectVersion);
-
-                blackDuckFortifyMapperGroup = new BlackDuckFortifyMapperGroup(blackDuckFortifyMapper.getFortifyApplication(),
-                        blackDuckFortifyMapper.getFortifyApplicationVersion(), hubProjectVersions, applicationId, releaseId);
-
-                mappings.put(key, blackDuckFortifyMapperGroup);
-
+                mappings.put(key, getHubProjectVersion(blackDuckFortifyMapper, mappings, accessToken, key));
             }
 
         } catch (IOException ioe) {
@@ -146,6 +132,42 @@ public final class MappingParser {
     }
 
     /**
+     * Retrieve the application id and release id for each Hub Project version, if not present, create it
+     *
+     * @param blackDuckFortifyMapper
+     * @param mappings
+     * @param accessToken
+     * @param key
+     * @return
+     * @throws IOException
+     * @throws IntegrationException
+     */
+    private BlackDuckFortifyMapperGroup getHubProjectVersion(BlackDuckFortifyMapper blackDuckFortifyMapper,
+            Map<String, BlackDuckFortifyMapperGroup> mappings, String accessToken, String key) throws IOException, IntegrationException {
+        BlackDuckFortifyMapperGroup blackDuckFortifyMapperGroup;
+        long applicationId = 0;
+        long releaseId = 0;
+        List<HubProjectVersion> hubProjectVersions = new ArrayList<>();
+
+        HubProjectVersion hubProjectVersion = new HubProjectVersion(blackDuckFortifyMapper.getHubProject(),
+                blackDuckFortifyMapper.getHubProjectVersion());
+
+        if (mappings.containsKey(key)) {
+            blackDuckFortifyMapperGroup = mappings.get(key);
+            hubProjectVersions = blackDuckFortifyMapperGroup.getHubProjectVersion();
+            applicationId = blackDuckFortifyMapperGroup.getFortifyApplicationId();
+            releaseId = blackDuckFortifyMapperGroup.getFortifyReleaseId();
+        } else {
+            applicationId = getFortifyApplicationId(blackDuckFortifyMapper, accessToken);
+            releaseId = getFortifyReleaseId(blackDuckFortifyMapper, accessToken, applicationId);
+        }
+        hubProjectVersions.add(hubProjectVersion);
+
+        return new BlackDuckFortifyMapperGroup(blackDuckFortifyMapper.getFortifyApplication(), blackDuckFortifyMapper.getFortifyApplicationVersion(),
+                hubProjectVersions, applicationId, releaseId);
+    }
+
+    /**
      *
      * Finds Application Id for Fortify Application
      *
@@ -154,23 +176,23 @@ public final class MappingParser {
      * @throws IOException
      * @throws IntegrationException
      */
-    private static long getFortifyApplicationId(final BlackDuckFortifyMapper mapping, String accessToken) throws IOException, IntegrationException {
+    private long getFortifyApplicationId(final BlackDuckFortifyMapper mapping, String accessToken) throws IOException, IntegrationException {
         String fortifyApplicationName = mapping.getFortifyApplication();
         String fortifyApplicationReleaseName = mapping.getFortifyApplicationVersion();
         long fortifyApplicationId = 0;
 
         // Get the fortify applications
-        fortifyApplicationId = FortifyApplicationApi.getFortifyApplication(accessToken, fortifyApplicationName);
+        fortifyApplicationId = fortifyApplicationApi.getFortifyApplication(accessToken, fortifyApplicationName);
         logger.info("fortifyApplicationId::" + fortifyApplicationId);
 
         if (fortifyApplicationId == 0) {
             // Get the user Id
-            long userId = FortifyUserApi.getFortifyUsers(accessToken, PropertyConstants.getFortifyUserName());
+            long userId = fortifyUserApi.getFortifyUsers(accessToken);
 
             FortifyApplication fortifyApplicationRequest = new FortifyApplication(null, fortifyApplicationName, "", "Web_Thick_Client",
                     fortifyApplicationReleaseName, "", "", userId, new ArrayList<Attribute>(), "High", "Production");
             // Create the fortify application release if it is unavailable
-            fortifyApplicationId = FortifyApplicationApi.createFortifyApplicationRelease(accessToken, fortifyApplicationRequest);
+            fortifyApplicationId = fortifyApplicationApi.createFortifyApplicationRelease(accessToken, fortifyApplicationRequest);
         }
 
         return fortifyApplicationId;
@@ -185,18 +207,19 @@ public final class MappingParser {
      * @throws IOException
      * @throws IntegrationException
      */
-    private static long getFortifyReleaseId(final BlackDuckFortifyMapper mapping, final String accessToken, final long fortifyApplicationId)
+    private long getFortifyReleaseId(final BlackDuckFortifyMapper mapping, final String accessToken, final long fortifyApplicationId)
             throws IOException, IntegrationException {
         String fortifyApplicationReleaseName = mapping.getFortifyApplicationVersion();
         // Get the release for the given application
-        long releaseId = FortifyApplicationApi.getFortifyApplicationReleases(accessToken, fortifyApplicationId, fortifyApplicationReleaseName);
+        long releaseId = fortifyApplicationApi.getFortifyApplicationReleases(accessToken, fortifyApplicationId,
+                fortifyApplicationReleaseName);
         logger.info("releaseId::" + releaseId);
 
         // Create the release if the release is unavailable
         if (releaseId == 0) {
             FortifyApplicationRelease fortifyApplicationRelease = new FortifyApplicationRelease(null, fortifyApplicationReleaseName, "",
                     fortifyApplicationId, false, null, "Production");
-            releaseId = FortifyApplicationApi.createFortifyApplicationRelease(accessToken, fortifyApplicationRelease);
+            releaseId = fortifyApplicationApi.createFortifyApplicationRelease(accessToken, fortifyApplicationRelease);
             logger.info("created releaseId::" + releaseId);
         }
         return releaseId;

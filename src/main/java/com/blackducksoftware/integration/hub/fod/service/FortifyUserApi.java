@@ -26,6 +26,7 @@ package com.blackducksoftware.integration.hub.fod.service;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
@@ -70,14 +71,19 @@ public class FortifyUserApi extends FortifyService {
      * @throws IOException
      * @throws IntegrationException
      */
-    public static long getFortifyUsers(String accessToken, String userName) throws IOException, IntegrationException {
+    public long getFortifyUsers(String accessToken) throws IOException, IntegrationException {
 
-        Call<FortifyUsers> fortifyApplicationResponseCall = apiService.getFortifyUsers(BEARER + accessToken, USER_FILTERS + userName);
+        if (StringUtils.isEmpty(PropertyConstants.getFortifyUserName())) {
+            throw new IntegrationException("Please provide the username to create the application version");
+        }
+
+        Call<FortifyUsers> fortifyApplicationResponseCall = apiService.getFortifyUsers(BEARER + accessToken,
+                USER_FILTERS + PropertyConstants.getFortifyUserName());
         Response<FortifyUsers> fortifyApplicationResponse;
         long userId = 0;
         try {
             fortifyApplicationResponse = fortifyApplicationResponseCall.execute();
-            FortifyExceptionUtil.verifyFortifyCustomException(fortifyApplicationResponse, "Get Fortify Users Api");
+            FortifyExceptionUtil.verifyFortifyResponseCode(fortifyApplicationResponse, "Get Fortify Users Api");
             for (FortifyUser fortifyUser : fortifyApplicationResponse.body().getFortifyUsers()) {
                 if (fortifyUser.getUserName().equalsIgnoreCase(PropertyConstants.getFortifyUserName())) {
                     userId = fortifyUser.getUserId();
