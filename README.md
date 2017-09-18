@@ -1,5 +1,9 @@
 ## Overview ##
-Hub-FoD integration is a command line tool allowing the export of Hub Project Version component vulnerability information into a Fortify On Demand Application Release in the PDF format.  
+Hub-FoD integration is a command line tool allowing the export of Hub Project Version component vulnerability information into a Fortify On Demand Application Release in the PDF format.
+
+## Build ##
+
+[![Build Status](https://travis-ci.org/blackducksoftware/hub-fod.svg?branch=master)](https://travis-ci.org/blackducksoftware/hub-fod) [![Coverage Status](https://coveralls.io/repos/github/blackducksoftware/hub-fod/badge.svg?branch=master)](https://coveralls.io/github/blackducksoftware/hub-fod?branch=master) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Black Duck Security Risk](https://copilot.blackducksoftware.com/github/groups/blackducksoftware/locations/hub-fod/public/results/branches/master/badge-risk.svg)](https://copilot.blackducksoftware.com/github/groups/blackducksoftware/locations/hub-fod/public/results/branches/master)  
 
 ## Where can I get the latest release? ##
 Download the latest from [release page](https://github.com/blackducksoftware/hub-fod/releases)
