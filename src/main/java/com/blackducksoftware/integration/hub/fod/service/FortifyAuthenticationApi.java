@@ -54,12 +54,24 @@ public final class FortifyAuthenticationApi extends FortifyService {
 
     private final static Logger logger = Logger.getLogger(FortifyAuthenticationApi.class);
 
-    private final static OkHttpClient.Builder okBuilder = getOkHttpClientBuilder();
+    private final OkHttpClient.Builder okBuilder;
 
-    private final static Retrofit retrofit = new Retrofit.Builder().baseUrl(PropertyConstants.getFortifyServerUrl())
-            .addConverterFactory(GsonConverterFactory.create()).client(okBuilder.build()).build();
+    private final Retrofit retrofit;
 
-    private final static FortifyAuthenticationApiService apiService = retrofit.create(FortifyAuthenticationApiService.class);
+    private final FortifyAuthenticationApiService apiService;
+
+    /**
+     * Constructor
+     *
+     * @param propertyConstants
+     */
+    public FortifyAuthenticationApi(final PropertyConstants propertyConstants) {
+        super(propertyConstants);
+        okBuilder = getOkHttpClientBuilder(propertyConstants);
+        retrofit = new Retrofit.Builder().baseUrl(propertyConstants.getFortifyServerUrl())
+                .addConverterFactory(GsonConverterFactory.create()).client(okBuilder.build()).build();
+        apiService = retrofit.create(FortifyAuthenticationApiService.class);
+    }
 
     /**
      * Get the access token to call the Fortify api
@@ -71,9 +83,9 @@ public final class FortifyAuthenticationApi extends FortifyService {
      */
     public String getAuthenticatedToken() throws IOException, IntegrationException {
         Call<FortifyAuthenticationResponse> authenticatedResponseCall = null;
-        if (PASSWORD.equalsIgnoreCase(PropertyConstants.getFortifyGrantType())) {
+        if (PASSWORD.equalsIgnoreCase(propertyConstants.getFortifyGrantType())) {
             authenticatedResponseCall = getAuthenticatedTokenByPassword();
-        } else if (CLIENT_CREDENTIALS.equalsIgnoreCase(PropertyConstants.getFortifyGrantType())) {
+        } else if (CLIENT_CREDENTIALS.equalsIgnoreCase(propertyConstants.getFortifyGrantType())) {
             authenticatedResponseCall = getAuthenticatedTokenByClientCredentials();
         } else {
             throw new IntegrationException("Invalid Fortify Grant Type!");
@@ -98,13 +110,13 @@ public final class FortifyAuthenticationApi extends FortifyService {
      * @throws IntegrationException
      */
     private Call<FortifyAuthenticationResponse> getAuthenticatedTokenByPassword() throws IntegrationException {
-        if (StringUtils.isEmpty(PropertyConstants.getFortifyUserName()) || StringUtils.isEmpty(PropertyConstants.getFortifyPassword())
-                || StringUtils.isEmpty(PropertyConstants.getFortifyTenantId())) {
+        if (StringUtils.isEmpty(propertyConstants.getFortifyUserName()) || StringUtils.isEmpty(propertyConstants.getFortifyPassword())
+                || StringUtils.isEmpty(propertyConstants.getFortifyTenantId())) {
             throw new IntegrationException("Fortify Username, Password or/and Tenant Id is/are missing");
         }
 
-        return apiService.getAuthenticatedTokenByPassword(PropertyConstants.getFortifyScope(), PropertyConstants.getFortifyGrantType(),
-                PropertyConstants.getFortifyTenantId() + "\\" + PropertyConstants.getFortifyUserName(), PropertyConstants.getFortifyPassword());
+        return apiService.getAuthenticatedTokenByPassword(propertyConstants.getFortifyScope(), propertyConstants.getFortifyGrantType(),
+                propertyConstants.getFortifyTenantId() + "\\" + propertyConstants.getFortifyUserName(), propertyConstants.getFortifyPassword());
     }
 
     /**
@@ -114,11 +126,11 @@ public final class FortifyAuthenticationApi extends FortifyService {
      * @throws IntegrationException
      */
     private Call<FortifyAuthenticationResponse> getAuthenticatedTokenByClientCredentials() throws IntegrationException {
-        if (StringUtils.isEmpty(PropertyConstants.getFortifyClientId()) || StringUtils.isEmpty(PropertyConstants.getFortifyClientSecret())) {
+        if (StringUtils.isEmpty(propertyConstants.getFortifyClientId()) || StringUtils.isEmpty(propertyConstants.getFortifyClientSecret())) {
             throw new IntegrationException("Fortify Client Id or/and Client secrets is/are missing");
         }
 
-        return apiService.getAuthenticatedTokenByClientCredentials(PropertyConstants.getFortifyScope(),
-                PropertyConstants.getFortifyGrantType(), PropertyConstants.getFortifyClientId(), PropertyConstants.getFortifyClientSecret());
+        return apiService.getAuthenticatedTokenByClientCredentials(propertyConstants.getFortifyScope(),
+                propertyConstants.getFortifyGrantType(), propertyConstants.getFortifyClientId(), propertyConstants.getFortifyClientSecret());
     }
 }

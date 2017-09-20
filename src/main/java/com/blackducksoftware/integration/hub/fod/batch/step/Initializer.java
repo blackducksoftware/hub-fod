@@ -72,26 +72,29 @@ public class Initializer implements Tasklet, StepExecutionListener {
 
     private final HubServices hubServices;
 
-    public Initializer(final MappingParser mappingParser, final HubServices hubServices) {
+    private final PropertyConstants propertyConstants;
+
+    public Initializer(final MappingParser mappingParser, final HubServices hubServices, final PropertyConstants propertyConstants) {
         this.mappingParser = mappingParser;
         this.hubServices = hubServices;
+        this.propertyConstants = propertyConstants;
     }
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         logger.info("Started MappingParserTask");
-        logger.debug("Found Mapping file:: " + PropertyConstants.getMappingJsonPath());
+        logger.debug("Found Mapping file:: " + propertyConstants.getMappingJsonPath());
 
         // Create the mapping between Hub and Fortify
-        final List<BlackDuckFortifyMapperGroup> groupMap = mappingParser.createMapping(PropertyConstants.getMappingJsonPath());
+        final List<BlackDuckFortifyMapperGroup> groupMap = mappingParser.createMapping(propertyConstants.getMappingJsonPath());
         logger.info("blackDuckFortifyMappers :" + groupMap.toString());
 
         // Create the threads for parallel processing
-        ExecutorService exec = Executors.newFixedThreadPool(PropertyConstants.getMaximumThreadSize());
+        ExecutorService exec = Executors.newFixedThreadPool(propertyConstants.getMaximumThreadSize());
         List<Future<?>> futures = new ArrayList<>(groupMap.size());
 
         for (BlackDuckFortifyMapperGroup blackDuckFortifyMapperGroup : groupMap) {
-            futures.add(exec.submit(new BlackDuckFortifyPushThread(blackDuckFortifyMapperGroup, hubServices)));
+            futures.add(exec.submit(new BlackDuckFortifyPushThread(blackDuckFortifyMapperGroup, hubServices, propertyConstants)));
         }
         for (Future<?> f : futures) {
             f.get(); // wait for a processor to complete
@@ -118,7 +121,7 @@ public class Initializer implements Tasklet, StepExecutionListener {
     public ExitStatus afterStep(StepExecution stepExecution) {
         if (jobStatus) {
             try (Writer writer = new BufferedWriter(
-                    new OutputStreamWriter(new FileOutputStream(PropertyConstants.getBatchJobStatusFilePath()), "utf-8"))) {
+                    new OutputStreamWriter(new FileOutputStream(propertyConstants.getBatchJobStatusFilePath()), "utf-8"))) {
                 writer.write(startJobTimeStamp);
             } catch (UnsupportedEncodingException e) {
                 logger.error(e.getMessage(), e);

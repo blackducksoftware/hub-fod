@@ -55,12 +55,24 @@ public class FortifyUserApi extends FortifyService {
 
     private final static Logger logger = Logger.getLogger(FortifyUserApiService.class);
 
-    private final static OkHttpClient.Builder okBuilder = getOkHttpClientBuilder();
+    private final OkHttpClient.Builder okBuilder;
 
-    private final static Retrofit retrofit = new Retrofit.Builder().baseUrl(PropertyConstants.getFortifyServerUrl())
-            .addConverterFactory(GsonConverterFactory.create()).client(okBuilder.build()).build();
+    private final Retrofit retrofit;
 
-    private final static FortifyUserApiService apiService = retrofit.create(FortifyUserApiService.class);
+    private final FortifyUserApiService apiService;
+
+    /**
+     * Constructor
+     *
+     * @param propertyConstants
+     */
+    public FortifyUserApi(final PropertyConstants propertyConstants) {
+        super(propertyConstants);
+        okBuilder = getOkHttpClientBuilder(propertyConstants);
+        retrofit = new Retrofit.Builder().baseUrl(propertyConstants.getFortifyServerUrl())
+                .addConverterFactory(GsonConverterFactory.create()).client(okBuilder.build()).build();
+        apiService = retrofit.create(FortifyUserApiService.class);
+    }
 
     /**
      * Get the application id for the given application name
@@ -73,19 +85,19 @@ public class FortifyUserApi extends FortifyService {
      */
     public long getFortifyUsers(String accessToken) throws IOException, IntegrationException {
 
-        if (StringUtils.isEmpty(PropertyConstants.getFortifyUserName())) {
+        if (StringUtils.isEmpty(propertyConstants.getFortifyUserName())) {
             throw new IntegrationException("Please provide the username to create the application version");
         }
 
         Call<FortifyUsers> fortifyApplicationResponseCall = apiService.getFortifyUsers(BEARER + accessToken,
-                USER_FILTERS + PropertyConstants.getFortifyUserName());
+                USER_FILTERS + propertyConstants.getFortifyUserName());
         Response<FortifyUsers> fortifyApplicationResponse;
         long userId = 0;
         try {
             fortifyApplicationResponse = fortifyApplicationResponseCall.execute();
             FortifyExceptionUtil.verifyFortifyResponseCode(fortifyApplicationResponse, "Get Fortify Users Api");
             for (FortifyUser fortifyUser : fortifyApplicationResponse.body().getFortifyUsers()) {
-                if (fortifyUser.getUserName().equalsIgnoreCase(PropertyConstants.getFortifyUserName())) {
+                if (fortifyUser.getUserName().equalsIgnoreCase(propertyConstants.getFortifyUserName())) {
                     userId = fortifyUser.getUserId();
                 }
             }

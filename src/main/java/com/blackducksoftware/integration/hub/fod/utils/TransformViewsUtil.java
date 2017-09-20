@@ -80,7 +80,7 @@ public final class TransformViewsUtil {
      * @param originViews
      * @return
      */
-    public static List<TransformedOriginView> transformOriginView(final List<OriginView> originViews) {
+    public static List<TransformedOriginView> transformOriginView(final List<OriginView> originViews, final PropertyConstants propertyConstants) {
 
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.createTypeMap(OriginView.class, TransformedOriginView.class).setProvider(
@@ -91,7 +91,7 @@ public final class TransformViewsUtil {
                         String componentVersionOriginUrl = null;
                         for (LinkView link : originView.meta.links) {
                             if ("origin".equalsIgnoreCase(link.rel)) {
-                                componentVersionOriginUrl = link.href.replaceAll(PropertyConstants.getHubServerUrl(), "");
+                                componentVersionOriginUrl = link.href.replaceAll(propertyConstants.getHubServerUrl(), "");
                                 break;
                             }
                         }

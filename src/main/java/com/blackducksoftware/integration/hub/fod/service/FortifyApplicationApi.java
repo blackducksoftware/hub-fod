@@ -59,12 +59,19 @@ public class FortifyApplicationApi extends FortifyService {
 
     private final static Logger logger = Logger.getLogger(FortifyApplicationApi.class);
 
-    private final static OkHttpClient.Builder okBuilder = getOkHttpClientBuilder();
+    private final OkHttpClient.Builder okBuilder;
 
-    private final static Retrofit retrofit = new Retrofit.Builder().baseUrl(PropertyConstants.getFortifyServerUrl())
-            .addConverterFactory(GsonConverterFactory.create()).client(okBuilder.build()).build();
+    private final Retrofit retrofit;
 
-    private final static FortifyApplicationApiService apiService = retrofit.create(FortifyApplicationApiService.class);
+    private final FortifyApplicationApiService apiService;
+
+    public FortifyApplicationApi(final PropertyConstants propertyConstants) {
+        super(propertyConstants);
+        okBuilder = getOkHttpClientBuilder(propertyConstants);
+        retrofit = new Retrofit.Builder().baseUrl(propertyConstants.getFortifyServerUrl())
+                .addConverterFactory(GsonConverterFactory.create()).client(okBuilder.build()).build();
+        apiService = retrofit.create(FortifyApplicationApiService.class);
+    }
 
     /**
      * Get the application id for the given application name

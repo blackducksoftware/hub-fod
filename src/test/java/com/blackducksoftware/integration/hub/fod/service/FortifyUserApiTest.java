@@ -31,33 +31,41 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
+import com.blackducksoftware.integration.hub.fod.batch.BatchSchedulerConfig;
 import com.blackducksoftware.integration.hub.fod.batch.TestApplication;
 import com.blackducksoftware.integration.hub.fod.batch.job.BlackDuckFortifyJobConfig;
+import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
 
 import junit.framework.TestCase;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = { TestApplication.class })
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@ContextConfiguration(classes = { BlackDuckFortifyJobConfig.class, BatchSchedulerConfig.class, PropertyConstants.class })
 public class FortifyUserApiTest extends TestCase {
     private String accessToken;
 
-    private BlackDuckFortifyJobConfig blackDuckFortifyJobConfig;
+    @Autowired
+    private FortifyAuthenticationApi fortifyAuthenticationApi;
+
+    @Autowired
+    private FortifyUserApi fortifyUserApi;
 
     @Override
     @Before
     public void setUp() throws IOException, IntegrationException {
-        blackDuckFortifyJobConfig = new BlackDuckFortifyJobConfig();
-        accessToken = blackDuckFortifyJobConfig.getFortifyAuthenticationApi().getAuthenticatedToken();
+        accessToken = fortifyAuthenticationApi.getAuthenticatedToken();
     }
 
     @Test
     public void getFortifyUser() throws IOException, IntegrationException {
-        long userId = blackDuckFortifyJobConfig.getFortifyUserApi().getFortifyUsers(accessToken);
+        long userId = fortifyUserApi.getFortifyUsers(accessToken);
         System.out.println("userId::" + userId);
         assertTrue("Error while getting the Fortify User", userId != 0);
     }

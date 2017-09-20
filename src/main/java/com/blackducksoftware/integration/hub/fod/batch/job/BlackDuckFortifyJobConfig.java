@@ -52,6 +52,7 @@ import com.blackducksoftware.integration.hub.fod.service.FortifyUserApi;
 import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.fod.service.RestConnectionHelper;
 import com.blackducksoftware.integration.hub.fod.utils.MappingParser;
+import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
 
 /**
  * Schedule the batch job
@@ -73,6 +74,9 @@ public class BlackDuckFortifyJobConfig implements JobExecutionListener {
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
 
+    @Autowired
+    private PropertyConstants propertyConstants;
+
     /**
      * Created the bean for Fortify Application Api
      *
@@ -80,7 +84,7 @@ public class BlackDuckFortifyJobConfig implements JobExecutionListener {
      */
     @Bean
     public FortifyApplicationApi getFortifyApplicationApi() {
-        return new FortifyApplicationApi();
+        return new FortifyApplicationApi(propertyConstants);
     }
 
     /**
@@ -90,7 +94,7 @@ public class BlackDuckFortifyJobConfig implements JobExecutionListener {
      */
     @Bean
     public FortifyAuthenticationApi getFortifyAuthenticationApi() {
-        return new FortifyAuthenticationApi();
+        return new FortifyAuthenticationApi(propertyConstants);
     }
 
     /**
@@ -100,7 +104,7 @@ public class BlackDuckFortifyJobConfig implements JobExecutionListener {
      */
     @Bean
     public FortifyUserApi getFortifyUserApi() {
-        return new FortifyUserApi();
+        return new FortifyUserApi(propertyConstants);
     }
 
     /**
@@ -110,7 +114,7 @@ public class BlackDuckFortifyJobConfig implements JobExecutionListener {
      */
     @Bean
     public HubServices getHubServices() {
-        return new HubServices(RestConnectionHelper.createHubServicesFactory());
+        return new HubServices(RestConnectionHelper.createHubServicesFactory(propertyConstants));
     }
 
     /**
@@ -130,7 +134,7 @@ public class BlackDuckFortifyJobConfig implements JobExecutionListener {
      */
     @Bean
     public Initializer getMappingParserTask() {
-        return new Initializer(getMappingParser(), getHubServices());
+        return new Initializer(getMappingParser(), getHubServices(), propertyConstants);
     }
 
     /**

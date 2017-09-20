@@ -24,35 +24,31 @@
  */
 package com.blackducksoftware.integration.hub.fod.service;
 
-import java.io.IOException;
-
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.blackducksoftware.integration.exception.IntegrationException;
+import com.blackducksoftware.integration.hub.fod.batch.BatchSchedulerConfig;
 import com.blackducksoftware.integration.hub.fod.batch.TestApplication;
 import com.blackducksoftware.integration.hub.fod.batch.job.BlackDuckFortifyJobConfig;
+import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
 
 import junit.framework.TestCase;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = { TestApplication.class })
+@ContextConfiguration(classes = { BlackDuckFortifyJobConfig.class, BatchSchedulerConfig.class, PropertyConstants.class })
 public class FortifyAuthenticationApiTest extends TestCase {
 
-    private BlackDuckFortifyJobConfig blackDuckFortifyJobConfig;
-
-    @Override
-    @Before
-    public void setUp() throws IOException, IntegrationException {
-        blackDuckFortifyJobConfig = new BlackDuckFortifyJobConfig();
-    }
+    @Autowired
+    private FortifyAuthenticationApi fortifyAuthenticationApi;
 
     @Test
     public void getAuthenticationToken() throws Exception {
-        String accessToken = blackDuckFortifyJobConfig.getFortifyAuthenticationApi().getAuthenticatedToken();
+        String accessToken = fortifyAuthenticationApi.getAuthenticatedToken();
         System.out.println("accessToken::" + accessToken);
         assertNotNull(accessToken);
     }

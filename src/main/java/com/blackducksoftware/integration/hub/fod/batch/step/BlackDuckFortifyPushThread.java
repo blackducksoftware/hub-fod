@@ -86,9 +86,13 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
 
     private final HubServices hubServices;
 
-    public BlackDuckFortifyPushThread(final BlackDuckFortifyMapperGroup blackDuckFortifyMapperGroup, final HubServices hubServices) {
+    private final PropertyConstants propertyConstants;
+
+    public BlackDuckFortifyPushThread(final BlackDuckFortifyMapperGroup blackDuckFortifyMapperGroup, final HubServices hubServices,
+            PropertyConstants propertyConstants) {
         this.blackDuckFortifyMapperGroup = blackDuckFortifyMapperGroup;
         this.hubServices = hubServices;
+        this.propertyConstants = propertyConstants;
     }
 
     @Override
@@ -99,18 +103,18 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
         final List<HubProjectVersion> hubProjectVersions = blackDuckFortifyMapperGroup.getHubProjectVersion();
 
         // Get the last successful runtime of the job
-        final Date getLastSuccessfulJobRunTime = getLastSuccessfulJobRunTime(PropertyConstants.getBatchJobStatusFilePath());
+        final Date getLastSuccessfulJobRunTime = getLastSuccessfulJobRunTime(propertyConstants.getBatchJobStatusFilePath());
 
         // Get the project version view from Hub and calculate the max BOM updated date
         final List<ProjectVersionView> projectVersionItems = getProjectVersionItemsAndMaxBomUpdatedDate(hubProjectVersions);
         logger.info("Compare Dates: "
                 + ((getLastSuccessfulJobRunTime != null && maxBomUpdatedDate.after(getLastSuccessfulJobRunTime)) || (getLastSuccessfulJobRunTime == null)
-                        || (PropertyConstants.isBatchJobStatusCheck())));
+                        || (propertyConstants.isBatchJobStatusCheck())));
         logger.debug("getLastSuccessfulJobRunTime::" + getLastSuccessfulJobRunTime);
         logger.debug("maxBomUpdatedDate:: " + maxBomUpdatedDate);
 
         if ((getLastSuccessfulJobRunTime != null && maxBomUpdatedDate.after(getLastSuccessfulJobRunTime)) || (getLastSuccessfulJobRunTime == null)
-                || (!PropertyConstants.isBatchJobStatusCheck())) {
+                || (!propertyConstants.isBatchJobStatusCheck())) {
             // Get the vulnerabilities for all Hub project versions and merge it
             FortifyUploadRequest fortifyUploadRequest = mergeVulnerabilities(projectVersionItems, hubProjectVersions);
             Gson gson = new Gson();
@@ -232,8 +236,8 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
         }
 
         // Return the Fortify upload request
-        return new FortifyUploadRequest(componentVersionBoms.size(), PropertyConstants.getHubServerUrl(), hubProjectVersions.get(0).getHubProject(),
-                hubProjectVersions.get(0).getHubProjectVersion(), projectVersionItems.get(0).meta.href.replaceAll(PropertyConstants.getHubServerUrl(), ""),
+        return new FortifyUploadRequest(componentVersionBoms.size(), propertyConstants.getHubServerUrl(), hubProjectVersions.get(0).getHubProject(),
+                hubProjectVersions.get(0).getHubProjectVersion(), projectVersionItems.get(0).meta.href.replaceAll(propertyConstants.getHubServerUrl(), ""),
                 maxBomUpdatedDate, new ArrayList<>(componentVersionBoms.values()));
     }
 
@@ -259,7 +263,7 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
         }
         final List<TransformedMatchedFilesView> matchedFiles = TransformViewsUtil.transformMatchedFilesView(consolidatedMatchedFiles);
 
-        final List<TransformedOriginView> origins = TransformViewsUtil.transformOriginView(component.origins);
+        final List<TransformedOriginView> origins = TransformViewsUtil.transformOriginView(component.origins, propertyConstants);
 
         // Get the Component Version Vulnerability url for the component
         String componentVersionVulnerabilityUrl = hubServices.getComponentVersionVulnerabilityUrl(component.componentVersion);
@@ -287,8 +291,9 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
         // Replace the Hub Server Url in License with none
         for (int i = 0; licenses != null && i < licenses.size(); i++) {
             for (int j = 0; licenses.get(i).licenses != null && j < licenses.get(i).licenses.size(); j++) {
-                if (licenses.get(i).licenses.get(j).license != null)
-                    licenses.get(i).licenses.get(j).license = licenses.get(i).licenses.get(j).license.replaceAll(PropertyConstants.getHubServerUrl(), "");
+                if (licenses.get(i).licenses.get(j).license != null) {
+                    licenses.get(i).licenses.get(j).license = licenses.get(i).licenses.get(j).license.replaceAll(propertyConstants.getHubServerUrl(), "");
+                }
             }
         }
 

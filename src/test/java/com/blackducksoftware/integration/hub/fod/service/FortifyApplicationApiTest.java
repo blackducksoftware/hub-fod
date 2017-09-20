@@ -32,21 +32,26 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
+import com.blackducksoftware.integration.hub.fod.batch.BatchSchedulerConfig;
 import com.blackducksoftware.integration.hub.fod.batch.TestApplication;
 import com.blackducksoftware.integration.hub.fod.batch.job.BlackDuckFortifyJobConfig;
 import com.blackducksoftware.integration.hub.fod.domain.FortifyApplication;
 import com.blackducksoftware.integration.hub.fod.domain.FortifyApplication.Attribute;
 import com.blackducksoftware.integration.hub.fod.domain.FortifyApplicationRelease;
+import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
 
 import junit.framework.TestCase;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = { TestApplication.class })
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@ContextConfiguration(classes = { BlackDuckFortifyJobConfig.class, BatchSchedulerConfig.class, PropertyConstants.class })
 public class FortifyApplicationApiTest extends TestCase {
 
     private static final String APPLICATION_NAME = "FortifyTest";
@@ -57,53 +62,56 @@ public class FortifyApplicationApiTest extends TestCase {
 
     private String accessToken;
 
-    private BlackDuckFortifyJobConfig blackDuckFortifyJobConfig;
+    @Autowired
+    private FortifyAuthenticationApi fortifyAuthenticationApi;
+
+    @Autowired
+    private FortifyApplicationApi fortifyApplicationApi;
 
     @Override
     @Before
     public void setUp() throws IOException, IntegrationException {
-        blackDuckFortifyJobConfig = new BlackDuckFortifyJobConfig();
-        accessToken = blackDuckFortifyJobConfig.getFortifyAuthenticationApi().getAuthenticatedToken();
+        accessToken = fortifyAuthenticationApi.getAuthenticatedToken();
     }
 
     @Test
     public void createFortifyApplication() throws IOException, IntegrationException {
         FortifyApplication fortifyApplication = new FortifyApplication(null, APPLICATION_NAME, "", "Web_Thick_Client", RELEASE_NUMBER_1, "", "", 21501,
                 new ArrayList<Attribute>(), "High", "Production");
-        long fortifyApplicationId = blackDuckFortifyJobConfig.getFortifyApplicationApi().createFortifyApplicationRelease(accessToken, fortifyApplication);
+        long fortifyApplicationId = fortifyApplicationApi.createFortifyApplicationRelease(accessToken, fortifyApplication);
         System.out.println("fortifyApplicationId::" + fortifyApplicationId);
         assertNotNull(fortifyApplicationId);
 
         FortifyApplicationRelease fortifyApplicationRelease = new FortifyApplicationRelease(null, RELEASE_NUMBER_2, "", fortifyApplicationId, false, null,
                 "Production");
 
-        long releaseId = blackDuckFortifyJobConfig.getFortifyApplicationApi().createFortifyApplicationRelease(accessToken, fortifyApplicationRelease);
+        long releaseId = fortifyApplicationApi.createFortifyApplicationRelease(accessToken, fortifyApplicationRelease);
         System.out.println("releaseId::" + releaseId);
         assertNotNull(releaseId);
     }
 
     @Test
     public void getFortifyApplication() throws IOException, IntegrationException {
-        long fortifyApplicationId = blackDuckFortifyJobConfig.getFortifyApplicationApi().getFortifyApplication(accessToken, APPLICATION_NAME);
+        long fortifyApplicationId = fortifyApplicationApi.getFortifyApplication(accessToken, APPLICATION_NAME);
         System.out.println("fortifyApplicationId::" + fortifyApplicationId);
         assertTrue("Error while getting the Fortify Application", fortifyApplicationId != 0);
 
-        long releaseId = blackDuckFortifyJobConfig.getFortifyApplicationApi().getFortifyApplicationReleases(accessToken, fortifyApplicationId,
+        long releaseId = fortifyApplicationApi.getFortifyApplicationReleases(accessToken, fortifyApplicationId,
                 RELEASE_NUMBER_1);
         System.out.println("releaseId::" + releaseId);
         assertTrue("Error while getting the Fortify Release", releaseId != 0);
 
-        releaseId = blackDuckFortifyJobConfig.getFortifyApplicationApi().getFortifyApplicationReleases(accessToken, fortifyApplicationId, RELEASE_NUMBER_2);
+        releaseId = fortifyApplicationApi.getFortifyApplicationReleases(accessToken, fortifyApplicationId, RELEASE_NUMBER_2);
         System.out.println("releaseId::" + releaseId);
         assertTrue("Error while getting the Fortify Release", releaseId != 0);
 
-        blackDuckFortifyJobConfig.getFortifyApplicationApi().deleteFortifyApplicationReleases(accessToken, fortifyApplicationId);
+        fortifyApplicationApi.deleteFortifyApplicationReleases(accessToken, fortifyApplicationId);
     }
 
     /*
-       @Test
-       public void deleteFortifyApplication() throws IOException {
-           blackDuckFortifyJobConfig.getFortifyApplicationApi().deleteFortifyApplicationReleases(accessToken, 84072);
-       }
+     * @Test
+     * public void deleteFortifyApplication() throws IOException {
+     * blackDuckFortifyJobConfig.getFortifyApplicationApi().deleteFortifyApplicationReleases(accessToken, 84072);
+     * }
      */
 }

@@ -52,20 +52,20 @@ public final class RestConnectionHelper {
      *
      * @return
      */
-    private static HubServerConfig getHubServerConfig() {
+    private static HubServerConfig getHubServerConfig(final PropertyConstants propertyConstants) {
         HubServerConfigBuilder builder = new HubServerConfigBuilder();
-        builder.setHubUrl(PropertyConstants.getHubServerUrl());
-        builder.setUsername(PropertyConstants.getHubUserName());
-        builder.setPassword(PropertyConstants.getHubPassword());
-        builder.setTimeout(PropertyConstants.getHubTimeout());
+        builder.setHubUrl(propertyConstants.getHubServerUrl());
+        builder.setUsername(propertyConstants.getHubUserName());
+        builder.setPassword(propertyConstants.getHubPassword());
+        builder.setTimeout(propertyConstants.getHubTimeout());
 
-        if (PropertyConstants.getProxyHost() != null && !"".equalsIgnoreCase(PropertyConstants.getProxyHost())) {
-            logger.info("Inside Proxy settings::" + PropertyConstants.getProxyHost() + "::");
-            builder.setProxyHost(PropertyConstants.getProxyHost());
-            builder.setProxyPort(PropertyConstants.getProxyPort());
-            builder.setProxyUsername(PropertyConstants.getProxyUserName());
-            builder.setProxyPassword(PropertyConstants.getProxyPassword());
-            builder.setIgnoredProxyHosts(PropertyConstants.getProxyIgnoreHosts());
+        if (propertyConstants.getProxyHost() != null && !"".equalsIgnoreCase(propertyConstants.getProxyHost())) {
+            logger.info("Inside Proxy settings::" + propertyConstants.getProxyHost() + "::");
+            builder.setProxyHost(propertyConstants.getProxyHost());
+            builder.setProxyPort(propertyConstants.getProxyPort());
+            builder.setProxyUsername(propertyConstants.getProxyUserName());
+            builder.setProxyPassword(propertyConstants.getProxyPassword());
+            builder.setIgnoredProxyHosts(propertyConstants.getProxyIgnoreHosts());
         }
 
         return builder.build();
@@ -76,8 +76,8 @@ public final class RestConnectionHelper {
      *
      * @return
      */
-    private static CredentialsRestConnection getApplicationPropertyRestConnection() {
-        return getRestConnection(getHubServerConfig());
+    private static CredentialsRestConnection getApplicationPropertyRestConnection(final PropertyConstants consts) {
+        return getRestConnection(getHubServerConfig(consts));
     }
 
     /**
@@ -127,8 +127,8 @@ public final class RestConnectionHelper {
      *
      * @return
      */
-    public static HubServicesFactory createHubServicesFactory() {
-        return createHubServicesFactory(LogLevel.DEBUG);
+    public static HubServicesFactory createHubServicesFactory(final PropertyConstants propertyConstants) {
+        return createHubServicesFactory(propertyConstants, LogLevel.DEBUG);
     }
 
     /**
@@ -137,8 +137,8 @@ public final class RestConnectionHelper {
      * @param logLevel
      * @return
      */
-    private static HubServicesFactory createHubServicesFactory(final LogLevel logLevel) {
-        return createHubServicesFactory(new PrintStreamIntLogger(System.out, logLevel));
+    private static HubServicesFactory createHubServicesFactory(final PropertyConstants propertyConstants, final LogLevel logLevel) {
+        return createHubServicesFactory(propertyConstants, new PrintStreamIntLogger(System.out, logLevel));
     }
 
     /**
@@ -147,8 +147,8 @@ public final class RestConnectionHelper {
      * @param logger
      * @return
      */
-    private static HubServicesFactory createHubServicesFactory(final IntLogger logger) {
-        final RestConnection restConnection = getApplicationPropertyRestConnection();
+    private static HubServicesFactory createHubServicesFactory(final PropertyConstants propertyConstants, final IntLogger logger) {
+        final RestConnection restConnection = getApplicationPropertyRestConnection(propertyConstants);
         restConnection.logger = logger;
         final HubServicesFactory hubServicesFactory = new HubServicesFactory(restConnection);
         return hubServicesFactory;

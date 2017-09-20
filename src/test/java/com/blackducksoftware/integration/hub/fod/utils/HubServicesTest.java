@@ -33,10 +33,13 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
+import com.blackducksoftware.integration.hub.fod.batch.BatchSchedulerConfig;
 import com.blackducksoftware.integration.hub.fod.batch.TestApplication;
 import com.blackducksoftware.integration.hub.fod.batch.job.BlackDuckFortifyJobConfig;
 import com.blackducksoftware.integration.hub.fod.batch.model.BlackDuckFortifyMapperGroup;
@@ -45,6 +48,7 @@ import com.blackducksoftware.integration.hub.fod.batch.model.FortifyUploadReques
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedMatchedFilesView;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedOriginView;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedVulnerabilityWithRemediationView;
+import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.model.view.MatchedFilesView;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.ProjectView;
@@ -60,19 +64,26 @@ import junit.framework.TestCase;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = TestApplication.class)
+@ContextConfiguration(classes = { BlackDuckFortifyJobConfig.class, BatchSchedulerConfig.class, PropertyConstants.class })
 public class HubServicesTest extends TestCase {
     private String PROJECT_NAME;
 
     private String VERSION_NAME;
 
-    private BlackDuckFortifyJobConfig blackDuckFortifyJobConfig;
+    @Autowired
+    private HubServices hubServices;
+
+    @Autowired
+    private MappingParser mappingParser;
+
+    @Autowired
+    private PropertyConstants propertyConstants;
 
     @Override
     @Before
     public void setUp() throws JsonIOException, IOException, IntegrationException {
-        blackDuckFortifyJobConfig = new BlackDuckFortifyJobConfig();
-        final List<BlackDuckFortifyMapperGroup> blackDuckFortifyMappers = blackDuckFortifyJobConfig.getMappingParser()
-                .createMapping(PropertyConstants.getMappingJsonPath());
+        final List<BlackDuckFortifyMapperGroup> blackDuckFortifyMappers = mappingParser
+                .createMapping(propertyConstants.getMappingJsonPath());
         PROJECT_NAME = blackDuckFortifyMappers.get(0).getHubProjectVersion().get(0).getHubProject();
         VERSION_NAME = blackDuckFortifyMappers.get(0).getHubProjectVersion().get(0).getHubProjectVersion();
     }
@@ -83,8 +94,8 @@ public class HubServicesTest extends TestCase {
         ProjectView project = null;
         List<ProjectVersionView> projectVersionViews = new ArrayList<>();
         try {
-            project = blackDuckFortifyJobConfig.getHubServices().getProjectByProjectName(PROJECT_NAME);
-            projectVersionViews = blackDuckFortifyJobConfig.getHubServices().getProjectVersionsByProject(project);
+            project = hubServices.getProjectByProjectName(PROJECT_NAME);
+            projectVersionViews = hubServices.getProjectVersionsByProject(project);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (IntegrationException e) {
@@ -98,7 +109,7 @@ public class HubServicesTest extends TestCase {
         System.out.println("Executing getProjectVersion");
         ProjectVersionView projectVersionItem = null;
         try {
-            projectVersionItem = blackDuckFortifyJobConfig.getHubServices().getProjectVersion(PROJECT_NAME, VERSION_NAME);
+            projectVersionItem = hubServices.getProjectVersion(PROJECT_NAME, VERSION_NAME);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (IntegrationException e) {
@@ -112,7 +123,7 @@ public class HubServicesTest extends TestCase {
         System.out.println("Executing getProjectVersionWithInvalidProjectName");
         ProjectVersionView projectVersionItem = null;
         try {
-            projectVersionItem = blackDuckFortifyJobConfig.getHubServices().getProjectVersion("Solr1", VERSION_NAME);
+            projectVersionItem = hubServices.getProjectVersion("Solr1", VERSION_NAME);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (IntegrationException e) {
@@ -128,7 +139,7 @@ public class HubServicesTest extends TestCase {
         System.out.println("Executing getProjectVersionWithInvalidVersionName");
         ProjectVersionView projectVersionItem = null;
         try {
-            projectVersionItem = blackDuckFortifyJobConfig.getHubServices().getProjectVersion(PROJECT_NAME, "3.10");
+            projectVersionItem = hubServices.getProjectVersion(PROJECT_NAME, "3.10");
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (IntegrationException e) {
@@ -144,13 +155,13 @@ public class HubServicesTest extends TestCase {
         System.out.println("Executing getVulnerability");
         ProjectVersionView projectVersionItem = null;
         try {
-            projectVersionItem = blackDuckFortifyJobConfig.getHubServices().getProjectVersion(PROJECT_NAME, VERSION_NAME);
+            projectVersionItem = hubServices.getProjectVersion(PROJECT_NAME, VERSION_NAME);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (IntegrationException e) {
             e.printStackTrace();
         }
-        List<VulnerableComponentView> vulnerableComponentViews = blackDuckFortifyJobConfig.getHubServices().getVulnerabilityComponentViews(projectVersionItem);
+        List<VulnerableComponentView> vulnerableComponentViews = hubServices.getVulnerabilityComponentViews(projectVersionItem);
         System.out.println("vulnerableComponentViews size::" + vulnerableComponentViews.size() + ", vulnerableComponentViews::" + vulnerableComponentViews);
         assertNotNull(vulnerableComponentViews);
     }
@@ -160,13 +171,13 @@ public class HubServicesTest extends TestCase {
         System.out.println("Executing getBomLastUpdatedAt");
         ProjectVersionView projectVersionItem = null;
         try {
-            projectVersionItem = blackDuckFortifyJobConfig.getHubServices().getProjectVersion(PROJECT_NAME, VERSION_NAME);
+            projectVersionItem = hubServices.getProjectVersion(PROJECT_NAME, VERSION_NAME);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (IntegrationException e) {
             e.printStackTrace();
         }
-        Date bomLastUpdatedAt = blackDuckFortifyJobConfig.getHubServices().getBomLastUpdatedAt(projectVersionItem);
+        Date bomLastUpdatedAt = hubServices.getBomLastUpdatedAt(projectVersionItem);
         System.out.println("bomLastUpdatedAt::" + bomLastUpdatedAt);
         assertNotNull(bomLastUpdatedAt);
     }
@@ -175,16 +186,16 @@ public class HubServicesTest extends TestCase {
     public void getAggregatedComponentInfo() throws IllegalArgumentException, IntegrationException {
         System.out.println("Executing getAggregatedComponentInfo");
         ProjectVersionView projectVersionItem = null;
-        projectVersionItem = blackDuckFortifyJobConfig.getHubServices().getProjectVersion(PROJECT_NAME, VERSION_NAME);
+        projectVersionItem = hubServices.getProjectVersion(PROJECT_NAME, VERSION_NAME);
 
         System.out.println("projectReleaseUrl::" + projectVersionItem.meta.href);
 
-        Date bomUpdatedValueAt = blackDuckFortifyJobConfig.getHubServices().getBomLastUpdatedAt(projectVersionItem);
+        Date bomUpdatedValueAt = hubServices.getBomLastUpdatedAt(projectVersionItem);
 
-        List<VulnerableComponentView> vulnerabilities = blackDuckFortifyJobConfig.getHubServices().getVulnerabilityComponentViews(projectVersionItem);
+        List<VulnerableComponentView> vulnerabilities = hubServices.getVulnerabilityComponentViews(projectVersionItem);
         Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents = VulnerabilityUtil.groupByVulnerabilityByComponent(vulnerabilities);
 
-        List<VersionBomComponentView> allComponents = blackDuckFortifyJobConfig.getHubServices().getAggregatedComponentLists(projectVersionItem);
+        List<VersionBomComponentView> allComponents = hubServices.getAggregatedComponentLists(projectVersionItem);
         System.out.println("allComponents::" + allComponents.get(0));
         assertNotNull(allComponents);
 
@@ -193,35 +204,36 @@ public class HubServicesTest extends TestCase {
             List<MatchedFilesView> consolidatedMatchedFiles = new ArrayList<>();
             for (OriginView origin : component.origins) {
                 // System.out.println("origin::" + origin);
-                consolidatedMatchedFiles.addAll(blackDuckFortifyJobConfig.getHubServices().getMatchedFiles(origin));
+                consolidatedMatchedFiles.addAll(hubServices.getMatchedFiles(origin));
             }
             // System.out.println("consolidatedMatchedFiles::" + consolidatedMatchedFiles);
             assertNotNull(consolidatedMatchedFiles);
 
             List<TransformedMatchedFilesView> matchedFiles = TransformViewsUtil.transformMatchedFilesView(consolidatedMatchedFiles);
-            List<TransformedOriginView> origins = TransformViewsUtil.transformOriginView(component.origins);
+            List<TransformedOriginView> origins = TransformViewsUtil.transformOriginView(component.origins, propertyConstants);
 
             // System.out.println("componentUrl::" + component.getComponentVersion());
-            String componentVersionVulnerabilityUrl = blackDuckFortifyJobConfig.getHubServices()
+            String componentVersionVulnerabilityUrl = hubServices
                     .getComponentVersionVulnerabilityUrl(component.componentVersion);
             // System.out.println("componentVersionVulnerabilityUrl::" + componentVersionVulnerabilityUrl);
 
-            List<VulnerabilityView> vulnerableComponentView = blackDuckFortifyJobConfig.getHubServices().getVulnerabilities(componentVersionVulnerabilityUrl);
+            List<VulnerabilityView> vulnerableComponentView = hubServices.getVulnerabilities(componentVersionVulnerabilityUrl);
             List<TransformedVulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = transformVulnerabilityRemediationView(
-                    vulnerableComponentView, groupByVulnerabilityComponents, component.componentVersion);
+                    vulnerableComponentView, groupByVulnerabilityComponents, component.componentVersion, propertyConstants);
 
             for (int i = 0; component.licenses != null && i < component.licenses.size(); i++) {
                 for (int j = 0; component.licenses.get(i).licenses != null && j < component.licenses.get(i).licenses.size(); j++) {
-                    if (component.licenses.get(i).licenses.get(j).license != null)
+                    if (component.licenses.get(i).licenses.get(j).license != null) {
                         component.licenses.get(i).licenses.get(j).license = component.licenses.get(i).licenses.get(j).license
-                                .replaceAll(PropertyConstants.getHubServerUrl(), "");
+                                .replaceAll(propertyConstants.getHubServerUrl(), "");
+                    }
                 }
             }
 
             componentVersionBoms.add(
                     new ComponentVersionBom(component.componentName, component.componentVersionName,
-                            component.component.replaceAll(PropertyConstants.getHubServerUrl(), ""),
-                            component.componentVersion.replaceAll(PropertyConstants.getHubServerUrl(), ""), vulnerabilityWithRemediationViews.size(),
+                            component.component.replaceAll(propertyConstants.getHubServerUrl(), ""),
+                            component.componentVersion.replaceAll(propertyConstants.getHubServerUrl(), ""), vulnerabilityWithRemediationViews.size(),
                             vulnerabilityWithRemediationViews, matchedFiles.size(), matchedFiles, component.licenses, origins, component.usages,
                             component.releasedOn, component.licenseRiskProfile, component.securityRiskProfile, component.versionRiskProfile,
                             component.activityRiskProfile, component.operationalRiskProfile, component.activityData, component.reviewStatus,
@@ -229,8 +241,8 @@ public class HubServicesTest extends TestCase {
             // System.out.println("componentVersionBom::" + componentVersionBom));
         }
 
-        FortifyUploadRequest fortifyUploadRequest = new FortifyUploadRequest(componentVersionBoms.size(), PropertyConstants.getHubServerUrl(), PROJECT_NAME,
-                VERSION_NAME, projectVersionItem.meta.href.replaceAll(PropertyConstants.getHubServerUrl(), ""), bomUpdatedValueAt, componentVersionBoms);
+        FortifyUploadRequest fortifyUploadRequest = new FortifyUploadRequest(componentVersionBoms.size(), propertyConstants.getHubServerUrl(), PROJECT_NAME,
+                VERSION_NAME, projectVersionItem.meta.href.replaceAll(propertyConstants.getHubServerUrl(), ""), bomUpdatedValueAt, componentVersionBoms);
 
         // Java object to JSON, and assign to a String
         Gson gson = new Gson();
@@ -247,7 +259,8 @@ public class HubServicesTest extends TestCase {
      */
     private static List<TransformedVulnerabilityWithRemediationView> transformVulnerabilityRemediationView(
             final List<VulnerabilityView> vulnerabilityViews,
-            Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents, String componentVersionLink) {
+            Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents, String componentVersionLink,
+            final PropertyConstants propertyConstants) {
         List<TransformedVulnerabilityWithRemediationView> transformedVulnerabilityWithRemediationViews = new ArrayList<>();
         List<VulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = groupByVulnerabilityComponents.get(componentVersionLink);
         vulnerabilityViews.forEach(vulnerabilityView -> {
@@ -263,7 +276,7 @@ public class HubServicesTest extends TestCase {
                     vulnerabilityView.integrityImpact, vulnerabilityView.availabilityImpact, vulnerabilityWithRemediationView.remediationStatus,
                     vulnerabilityWithRemediationView.remediationTargetAt, vulnerabilityWithRemediationView.remediationActualAt,
                     vulnerabilityWithRemediationView.remediationCreatedAt, vulnerabilityWithRemediationView.remediationUpdatedAt,
-                    vulnerabilityView.meta.href.replaceAll(PropertyConstants.getHubServerUrl(), ""), "NVD".equalsIgnoreCase(vulnerabilityView.source)
+                    vulnerabilityView.meta.href.replaceAll(propertyConstants.getHubServerUrl(), ""), "NVD".equalsIgnoreCase(vulnerabilityView.source)
                             ? "http://web.nvd.nist.gov/view/vuln/detail?vulnId=" + vulnerabilityView.vulnerabilityName : "");
             transformedVulnerabilityWithRemediationViews.add(transformedVulnerabilityWithRemediationView);
         });

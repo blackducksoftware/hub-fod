@@ -36,6 +36,7 @@ import com.blackducksoftware.integration.hub.api.codelocation.CodeLocationReques
 import com.blackducksoftware.integration.hub.api.item.MetaService;
 import com.blackducksoftware.integration.hub.api.project.ProjectRequestService;
 import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionRequestService;
+import com.blackducksoftware.integration.hub.dataservice.phonehome.PhoneHomeDataService;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.fod.batch.model.RiskProfileView;
 import com.blackducksoftware.integration.hub.model.view.CodeLocationView;
@@ -341,5 +342,11 @@ public final class HubServices {
         logger.info("Getting Component Version Origin View");
         final MetaService metaService = hubServicesFactory.createMetaService(hubServicesFactory.getRestConnection().logger);
         return metaService.getFirstLink(originView, "origin");
+    }
+
+    public PhoneHomeDataService getPhoneHomeDataService() {
+        logger.info("Getting Phone Home Data Service");
+        final PhoneHomeDataService phoneHomeDataService = hubServicesFactory.createPhoneHomeDataService(hubServicesFactory.getRestConnection().logger);
+        return phoneHomeDataService;
     }
 }

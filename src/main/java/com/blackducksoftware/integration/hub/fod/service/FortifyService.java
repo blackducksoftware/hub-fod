@@ -58,7 +58,13 @@ public abstract class FortifyService {
 
     public final static int MAX_SIZE = 50;
 
-    public static Builder getOkHttpClientBuilder() {
+    protected final PropertyConstants propertyConstants;
+
+    public FortifyService(final PropertyConstants propertyConstants) {
+        this.propertyConstants = propertyConstants;
+    }
+
+    public static Builder getOkHttpClientBuilder(final PropertyConstants propertyConstants) {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(Level.BASIC);
         OkHttpClient.Builder okBuilder = new OkHttpClient.Builder()
@@ -69,22 +75,22 @@ public abstract class FortifyService {
 
         URL url;
         try {
-            url = new URL(PropertyConstants.getFortifyServerUrl());
+            url = new URL(propertyConstants.getFortifyServerUrl());
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
 
-        if (!PropertyConstants.getProxyHost().isEmpty() && shouldUseProxyForUrl(url)) {
+        if (!propertyConstants.getProxyHost().isEmpty() && shouldUseProxyForUrl(url, null)) {
 
             okBuilder.proxy(new java.net.Proxy(java.net.Proxy.Type.HTTP,
-                    new InetSocketAddress(PropertyConstants.getProxyHost(), Integer.parseInt(PropertyConstants.getProxyPort()))));
+                    new InetSocketAddress(propertyConstants.getProxyHost(), Integer.parseInt(propertyConstants.getProxyPort()))));
 
-            if (!PropertyConstants.getProxyUserName().isEmpty() && !PropertyConstants.getProxyPassword().isEmpty()) {
+            if (!propertyConstants.getProxyUserName().isEmpty() && !propertyConstants.getProxyPassword().isEmpty()) {
 
                 Authenticator proxyAuthenticator;
                 String credentials;
 
-                credentials = Credentials.basic(PropertyConstants.getProxyUserName(), PropertyConstants.getProxyPassword());
+                credentials = Credentials.basic(propertyConstants.getProxyUserName(), propertyConstants.getProxyPassword());
 
                 // authenticate the proxy
                 proxyAuthenticator = (route, response) -> response.request().newBuilder()
@@ -96,11 +102,11 @@ public abstract class FortifyService {
         return okBuilder;
     }
 
-    private static boolean shouldUseProxyForUrl(final URL url) {
-        if (StringUtils.isBlank(PropertyConstants.getProxyHost())) {
+    private static boolean shouldUseProxyForUrl(final URL url, final PropertyConstants propertyConstants) {
+        if (StringUtils.isBlank(propertyConstants.getProxyHost())) {
             return false;
         }
-        final List<Pattern> ignoredProxyHostPatterns = ProxyUtil.getIgnoredProxyHostPatterns(PropertyConstants.getProxyIgnoreHosts());
+        final List<Pattern> ignoredProxyHostPatterns = ProxyUtil.getIgnoredProxyHostPatterns(propertyConstants.getProxyIgnoreHosts());
         return !ProxyUtil.shouldIgnoreHost(url.getHost(), ignoredProxyHostPatterns);
     }
 }

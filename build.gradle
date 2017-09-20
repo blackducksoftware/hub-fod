@@ -60,7 +60,8 @@ dependencies {
 	compile("org.springframework:spring-context-support")
 	compile("org.springframework:spring-core")
 	compile("org.springframework:spring-expression")
-	compile("com.blackducksoftware.integration:hub-common:13.3.0")
+	compile("com.blackducksoftware.integration:hub-common:14.0.0")
+	compile("com.blackducksoftware.integration:phone-home-api:4.0.0")
     compile("com.fasterxml.jackson.core:jackson-annotations:2.8.8")
     compile("com.google.code.gson:gson")
     compile("org.modelmapper:modelmapper:1.0.0")
@@ -77,4 +78,10 @@ dependencies {
 	testCompile("org.powermock:powermock-module-junit4:1.6.6")
 	testCompile("junit:junit:4.+")
     testCompile("org.springframework.boot:spring-boot-starter-test")
+}
+
+processResources { 
+	filesMatching("**/application.properties") { 
+		expand(project.properties)
+	}
 }

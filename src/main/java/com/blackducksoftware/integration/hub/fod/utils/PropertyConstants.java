@@ -36,235 +36,245 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class PropertyConstants {
 
-    private static String hubUserName;
+    private String hubUserName;
 
     @Value("${hub.username}")
     public void setHubUserName(String hubUserName) {
-        PropertyConstants.hubUserName = hubUserName;
+        this.hubUserName = hubUserName;
     }
 
-    private static String hubPassword;
+    private String hubPassword;
 
     @Value("${hub.password}")
     public void setHubPassword(String hubPassword) {
-        PropertyConstants.hubPassword = hubPassword;
+        this.hubPassword = hubPassword;
     }
 
-    private static String hubTimeout;
+    private String hubTimeout;
 
     @Value("${hub.timeout}")
     public void setHubTimeout(String hubTimeout) {
-        PropertyConstants.hubTimeout = hubTimeout;
+        this.hubTimeout = hubTimeout;
     }
 
-    private static String hubServerUrl;
+    private String hubServerUrl;
 
     @Value("${hub.url}")
     public void setHubServerUrl(String hubServerUrl) {
-        PropertyConstants.hubServerUrl = hubServerUrl;
+        this.hubServerUrl = hubServerUrl;
     }
 
-    private static String proxyHost;
+    private String proxyHost;
 
     @Value("${proxy.host}")
     public void setProxyHost(String proxyHost) {
-        PropertyConstants.proxyHost = proxyHost;
+        this.proxyHost = proxyHost;
     }
 
-    private static String proxyPort;
+    private String proxyPort;
 
     @Value("${proxy.port}")
     public void setProxyPort(String proxyPort) {
-        PropertyConstants.proxyPort = proxyPort;
+        this.proxyPort = proxyPort;
     }
 
-    private static String proxyUserName;
+    private String proxyUserName;
 
     @Value("${proxy.username}")
     public void setProxyUserName(String proxyUserName) {
-        PropertyConstants.proxyUserName = proxyUserName;
+        this.proxyUserName = proxyUserName;
     }
 
-    private static String proxyPassword;
+    private String proxyPassword;
 
     @Value("${proxy.password}")
     public void setProxyPassword(String proxyPassword) {
-        PropertyConstants.proxyPassword = proxyPassword;
+        this.proxyPassword = proxyPassword;
     }
 
-    private static String proxyIgnoreHosts;
+    private String proxyIgnoreHosts;
 
     @Value("${proxy.ignore.hosts}")
     public void setProxyIgnoreHosts(String proxyIgnoreHosts) {
-        PropertyConstants.proxyIgnoreHosts = proxyIgnoreHosts;
+        this.proxyIgnoreHosts = proxyIgnoreHosts;
     }
 
-    private static String fortifyUserName;
+    private String fortifyUserName;
 
     @Value("${fod.username}")
     public void setFortifyUserName(String fortifyUserName) {
-        PropertyConstants.fortifyUserName = fortifyUserName;
+        this.fortifyUserName = fortifyUserName;
     }
 
-    private static String fortifyPassword;
+    private String fortifyPassword;
 
     @Value("${fod.password}")
     public void setFortifyPassword(String fortifyPassword) {
-        PropertyConstants.fortifyPassword = fortifyPassword;
+        this.fortifyPassword = fortifyPassword;
     }
 
-    private static String fortifyTenantId;
+    private String fortifyTenantId;
 
     @Value("${fod.tenant.id}")
     public void setFortifyTenantId(String fortifyTenantId) {
-        PropertyConstants.fortifyTenantId = fortifyTenantId;
+        this.fortifyTenantId = fortifyTenantId;
     }
 
-    private static String fortifyClientId;
+    private String fortifyClientId;
 
     @Value("${fod.client.id}")
     public void setFortifyClientId(String fortifyClientId) {
-        PropertyConstants.fortifyClientId = fortifyClientId;
+        this.fortifyClientId = fortifyClientId;
     }
 
-    private static String fortifyClientSecret;
+    private String fortifyClientSecret;
 
     @Value("${fod.client.secret}")
     public void setFortifyClientSecret(String fortifyClientSecret) {
-        PropertyConstants.fortifyClientSecret = fortifyClientSecret;
+        this.fortifyClientSecret = fortifyClientSecret;
     }
 
-    private static String fortifyGrantType;
+    private String fortifyGrantType;
 
     @Value("${fod.grant.type}")
     public void setFortifyGrantType(String fortifyGrantType) {
-        PropertyConstants.fortifyGrantType = fortifyGrantType;
+        this.fortifyGrantType = fortifyGrantType;
     }
 
-    private static String fortifyScope;
+    private String fortifyScope;
 
     @Value("${fod.scope}")
     public void setFortifyScope(String fortifyScope) {
-        PropertyConstants.fortifyScope = fortifyScope;
+        this.fortifyScope = fortifyScope;
     }
 
-    private static String fortifyServerUrl;
+    private String fortifyServerUrl;
 
     @Value("${fod.api.baseurl}")
     public void setFortifyServerUrl(String fortifyServerUrl) {
-        PropertyConstants.fortifyServerUrl = fortifyServerUrl;
+        this.fortifyServerUrl = fortifyServerUrl;
     }
 
-    private static String batchJobStatusFilePath;
+    private String batchJobStatusFilePath;
 
     @Value("${hub.fortify.batch.job.status.file.path}")
     public void setBatchJobStatusFilePath(String batchJobStatusFilePath) {
-        PropertyConstants.batchJobStatusFilePath = batchJobStatusFilePath;
+        this.batchJobStatusFilePath = batchJobStatusFilePath;
     }
 
-    private static String mappingJsonPath;
+    private String mappingJsonPath;
 
     @Value("${hub.fortify.mapping.file.path}")
     public void setMappingJsonPath(String mappingJsonPath) {
-        PropertyConstants.mappingJsonPath = mappingJsonPath;
+        this.mappingJsonPath = mappingJsonPath;
     }
 
-    private static int maximumThreadSize;
+    private int maximumThreadSize;
 
     @Value("${maximum.thread.size}")
     public void setMaximumThreadSize(int maximumThreadSize) {
-        PropertyConstants.maximumThreadSize = maximumThreadSize;
+        this.maximumThreadSize = maximumThreadSize;
     }
 
-    private static boolean batchJobStatusCheck;
+    private boolean batchJobStatusCheck;
 
     @Value("${batch.job.status.check}")
     public void setBatchJobStatusCheck(boolean batchJobStatusCheck) {
-        PropertyConstants.batchJobStatusCheck = batchJobStatusCheck;
+        this.batchJobStatusCheck = batchJobStatusCheck;
     }
 
-    public static String getHubUserName() {
+    private String pluginVersion;
+
+    @Value("${plugin.version}")
+    public void setPluginVersion(String pluginVersion) {
+        this.pluginVersion = pluginVersion;
+    }
+
+    public String getHubUserName() {
         return hubUserName;
     }
 
-    public static String getHubPassword() {
+    public String getHubPassword() {
         return hubPassword;
     }
 
-    public static String getHubTimeout() {
+    public String getHubTimeout() {
         return hubTimeout;
     }
 
-    public static String getHubServerUrl() {
+    public String getHubServerUrl() {
         return hubServerUrl;
     }
 
-    public static String getProxyHost() {
+    public String getProxyHost() {
         return proxyHost;
     }
 
-    public static String getProxyPort() {
+    public String getProxyPort() {
         return proxyPort;
     }
 
-    public static String getProxyUserName() {
+    public String getProxyUserName() {
         return proxyUserName;
     }
 
-    public static String getProxyPassword() {
+    public String getProxyPassword() {
         return proxyPassword;
     }
 
-    public static String getProxyIgnoreHosts() {
+    public String getProxyIgnoreHosts() {
         return proxyIgnoreHosts;
     }
 
-    public static String getFortifyUserName() {
+    public String getFortifyUserName() {
         return fortifyUserName;
     }
 
-    public static String getFortifyPassword() {
+    public String getFortifyPassword() {
         return fortifyPassword;
     }
 
-    public static String getFortifyTenantId() {
+    public String getFortifyTenantId() {
         return fortifyTenantId;
     }
 
-    public static String getFortifyClientId() {
+    public String getFortifyClientId() {
         return fortifyClientId;
     }
 
-    public static String getFortifyClientSecret() {
+    public String getFortifyClientSecret() {
         return fortifyClientSecret;
     }
 
-    public static String getFortifyGrantType() {
+    public String getFortifyGrantType() {
         return fortifyGrantType;
     }
 
-    public static String getFortifyScope() {
+    public String getFortifyScope() {
         return fortifyScope;
     }
 
-    public static String getFortifyServerUrl() {
+    public String getFortifyServerUrl() {
         return fortifyServerUrl;
     }
 
-    public static String getBatchJobStatusFilePath() {
+    public String getBatchJobStatusFilePath() {
         return batchJobStatusFilePath;
     }
 
-    public static String getMappingJsonPath() {
+    public String getMappingJsonPath() {
         return mappingJsonPath;
     }
 
-    public static int getMaximumThreadSize() {
+    public int getMaximumThreadSize() {
         return maximumThreadSize;
     }
 
-    public static boolean isBatchJobStatusCheck() {
+    public boolean isBatchJobStatusCheck() {
         return batchJobStatusCheck;
     }
 
+    public String getPluginVersion() {
+        return pluginVersion;
+    }
 }
