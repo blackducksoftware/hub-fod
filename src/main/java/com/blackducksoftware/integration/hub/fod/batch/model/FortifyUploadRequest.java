@@ -67,10 +67,10 @@ public final class FortifyUploadRequest {
     private final Date bomUpdatedAt;
 
     @JsonProperty("items")
-    private final List<ComponentVersionBom> items;
+    private final List<ComponentVersionOriginBom> items;
 
     public FortifyUploadRequest(int totalCount, String hubServerUrl, String projectName, String projectVersionName, String projectVersionUrl, Date bomUpdatedAt,
-            List<ComponentVersionBom> items) {
+            List<ComponentVersionOriginBom> items) {
         this.totalCount = totalCount;
         this.hubServerUrl = hubServerUrl;
         this.projectName = projectName;
@@ -104,7 +104,7 @@ public final class FortifyUploadRequest {
         return bomUpdatedAt;
     }
 
-    public List<ComponentVersionBom> getItems() {
+    public List<ComponentVersionOriginBom> getItems() {
         return items;
     }
 

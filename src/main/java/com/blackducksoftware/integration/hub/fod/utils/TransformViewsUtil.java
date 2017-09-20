@@ -27,7 +27,6 @@ package com.blackducksoftware.integration.hub.fod.utils;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.Provider;
@@ -38,7 +37,6 @@ import com.blackducksoftware.integration.hub.fod.batch.model.TransformedOriginVi
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedVulnerabilityWithRemediationView;
 import com.blackducksoftware.integration.hub.model.view.MatchedFilesView;
 import com.blackducksoftware.integration.hub.model.view.VulnerabilityView;
-import com.blackducksoftware.integration.hub.model.view.VulnerabilityWithRemediationView;
 import com.blackducksoftware.integration.hub.model.view.components.LinkView;
 import com.blackducksoftware.integration.hub.model.view.components.OriginView;
 
@@ -114,27 +112,30 @@ public final class TransformViewsUtil {
      * @param componentVersionLink
      * @return
      */
-    public static List<TransformedVulnerabilityWithRemediationView> transformVulnerabilityRemediationView(
-            final List<VulnerabilityView> vulnerabilityViews,
-            Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents, String componentVersionLink) {
+    public static List<TransformedVulnerabilityWithRemediationView> transformVulnerabilityRemediationView(final List<VulnerabilityView> vulnerabilityViews) {
         List<TransformedVulnerabilityWithRemediationView> transformedVulnerabilityWithRemediationViews = new ArrayList<>();
-        List<VulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = groupByVulnerabilityComponents.get(componentVersionLink);
+        /*
+         * List<VulnerabilityWithRemediationView> vulnerabilityWithRemediationViews =
+         * groupByVulnerabilityComponents.get(componentVersionLink);
+         */
         if (vulnerabilityViews != null) {
             vulnerabilityViews.forEach(vulnerabilityView -> {
-                VulnerabilityWithRemediationView vulnerabilityWithRemediationView = VulnerabilityUtil.getVulnerabilityRemediationView(
-                        vulnerabilityWithRemediationViews, vulnerabilityView.vulnerabilityName);
-                TransformedVulnerabilityWithRemediationView transformedVulnerabilityWithRemediationView = new TransformedVulnerabilityWithRemediationView(
-                        vulnerabilityView.vulnerabilityName, vulnerabilityView.cweId, "", vulnerabilityView.description,
-                        vulnerabilityWithRemediationView.vulnerabilityPublishedDate, vulnerabilityWithRemediationView.vulnerabilityUpdatedDate,
-                        vulnerabilityView.baseScore, vulnerabilityView.exploitabilitySubscore, vulnerabilityView.impactSubscore,
-                        vulnerabilityView.source, vulnerabilityView.severity, vulnerabilityView.accessVector,
-                        vulnerabilityView.accessComplexity, vulnerabilityView.authentication, vulnerabilityView.confidentialityImpact,
-                        vulnerabilityView.integrityImpact, vulnerabilityView.availabilityImpact, vulnerabilityWithRemediationView.remediationStatus,
-                        vulnerabilityWithRemediationView.remediationTargetAt, vulnerabilityWithRemediationView.remediationActualAt,
-                        vulnerabilityWithRemediationView.remediationCreatedAt, vulnerabilityWithRemediationView.remediationUpdatedAt,
-                        vulnerabilityView.meta.href, "NVD".equalsIgnoreCase(vulnerabilityView.source)
-                                ? "http://web.nvd.nist.gov/view/vuln/detail?vulnId=" + vulnerabilityView.vulnerabilityName : "");
-                transformedVulnerabilityWithRemediationViews.add(transformedVulnerabilityWithRemediationView);
+                /*
+                 * VulnerabilityWithRemediationView vulnerabilityWithRemediationView =
+                 * VulnerabilityUtil.getVulnerabilityRemediationView(
+                 * vulnerabilityWithRemediationViews, vulnerabilityView.vulnerabilityName);
+                 */
+                if ("NVD".equalsIgnoreCase(vulnerabilityView.source)) {
+                    TransformedVulnerabilityWithRemediationView transformedVulnerabilityWithRemediationView = new TransformedVulnerabilityWithRemediationView(
+                            vulnerabilityView.vulnerabilityName, vulnerabilityView.cweId, "", vulnerabilityView.description,
+                            vulnerabilityView.baseScore, vulnerabilityView.exploitabilitySubscore, vulnerabilityView.impactSubscore,
+                            vulnerabilityView.source, vulnerabilityView.severity, vulnerabilityView.accessVector,
+                            vulnerabilityView.accessComplexity, vulnerabilityView.authentication, vulnerabilityView.confidentialityImpact,
+                            vulnerabilityView.integrityImpact, vulnerabilityView.availabilityImpact,
+                            vulnerabilityView.meta.href.replaceAll(PropertyConstants.getHubServerUrl(), ""),
+                            "http://web.nvd.nist.gov/view/vuln/detail?vulnId=" + vulnerabilityView.vulnerabilityName);
+                    transformedVulnerabilityWithRemediationViews.add(transformedVulnerabilityWithRemediationView);
+                }
             });
         }
         return transformedVulnerabilityWithRemediationViews;

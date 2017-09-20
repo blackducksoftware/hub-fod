@@ -60,7 +60,7 @@ public abstract class FortifyService {
 
     public static Builder getOkHttpClientBuilder() {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-        logging.setLevel(Level.BASIC);
+        logging.setLevel(Level.BODY);
         OkHttpClient.Builder okBuilder = new OkHttpClient.Builder()
                 .connectTimeout(CONNECTION_TIMEOUT, TimeUnit.SECONDS)
                 .writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS)

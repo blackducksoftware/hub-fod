@@ -3,8 +3,9 @@ buildscript {
 		springBootVersion = '1.5.3.RELEASE'
 	}
 	repositories {
-		mavenLocal()
+		//mavenLocal()
 		mavenCentral()
+		//maven{url "https://plugins.gradle.org/m2/"}
 	}
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
@@ -20,7 +21,8 @@ plugins {
     id 'jacoco'
     id 'com.github.kt3k.coveralls' version '2.8.1'
 }
-allprojects{ 
+
+allprojects { 
 	apply plugin: "com.jfrog.artifactory"
 }
 
@@ -45,8 +47,11 @@ startScripts {
     }
 }
 
-repositories{
-	mavenLocal()
+repositories {
+	/*mavenLocal()
+	maven {
+        url '/Users/smanikantan/.m2/repository'
+    }*/
 	mavenCentral()
 }
 
@@ -60,7 +65,8 @@ dependencies {
 	compile("org.springframework:spring-context-support")
 	compile("org.springframework:spring-core")
 	compile("org.springframework:spring-expression")
-	compile("com.blackducksoftware.integration:hub-common:13.3.0")
+	compile("org.springframework:spring-web")
+	compile("com.blackducksoftware.integration:hub-common:[1,)")
     compile("com.fasterxml.jackson.core:jackson-annotations:2.8.8")
     compile("com.google.code.gson:gson")
     compile("org.modelmapper:modelmapper:1.0.0")
@@ -78,3 +84,7 @@ dependencies {
 	testCompile("junit:junit:4.+")
     testCompile("org.springframework.boot:spring-boot-starter-test")
 }
+
+/*test {
+    testLogging.showStandardStreams = true
+}*/
