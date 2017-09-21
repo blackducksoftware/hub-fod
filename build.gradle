@@ -67,7 +67,6 @@ dependencies {
 	compile("org.springframework:spring-expression")
 	compile("org.springframework:spring-web")
 	compile("com.blackducksoftware.integration:hub-common:[1,)")
-	compile("com.blackducksoftware.integration:phone-home-api:4.+")
     compile("com.fasterxml.jackson.core:jackson-annotations:2.8.8")
     compile("com.google.code.gson:gson")
     compile("org.modelmapper:modelmapper:1.0.0")
@@ -91,7 +90,7 @@ dependencies {
 }*/
 
 processResources { 
-	filesMatching("**/application.properties") { 
+	filesMatching("**/application*.properties") { 
 		expand(project.properties)
 	}
 }
