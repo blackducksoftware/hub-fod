@@ -162,6 +162,13 @@ public class PropertyConstants {
         this.batchJobStatusFilePath = batchJobStatusFilePath;
     }
 
+    private String reportDir;
+
+    @Value("${hub.fortify.report.dir}")
+    public void setReportDir(String reportDir) {
+        this.reportDir = reportDir;
+    }
+
     private String mappingJsonPath;
 
     @Value("${hub.fortify.mapping.file.path}")
@@ -260,6 +267,10 @@ public class PropertyConstants {
 
     public String getBatchJobStatusFilePath() {
         return batchJobStatusFilePath;
+    }
+
+    public String getReportDir() {
+        return reportDir;
     }
 
     public String getMappingJsonPath() {

@@ -48,6 +48,7 @@ import com.blackducksoftware.integration.hub.fod.batch.BatchSchedulerConfig;
 import com.blackducksoftware.integration.hub.fod.batch.step.Initializer;
 import com.blackducksoftware.integration.hub.fod.service.FortifyApplicationApi;
 import com.blackducksoftware.integration.hub.fod.service.FortifyAuthenticationApi;
+import com.blackducksoftware.integration.hub.fod.service.FortifyOpenSourceScansApi;
 import com.blackducksoftware.integration.hub.fod.service.FortifyUserApi;
 import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.fod.service.RestConnectionHelper;
@@ -105,6 +106,16 @@ public class BlackDuckFortifyJobConfig implements JobExecutionListener {
     @Bean
     public FortifyUserApi getFortifyUserApi() {
         return new FortifyUserApi(propertyConstants);
+    }
+
+    /**
+     * Created the bean to get the instance of Fortify User Api
+     *
+     * @return
+     */
+    @Bean
+    public FortifyOpenSourceScansApi getFortifyOpenSourceScansApi() {
+        return new FortifyOpenSourceScansApi(propertyConstants);
     }
 
     /**

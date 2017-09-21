@@ -35,33 +35,26 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.apache.log4j.Logger;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.fod.batch.model.BlackDuckFortifyMapperGroup;
-import com.blackducksoftware.integration.hub.fod.batch.model.ComponentVersionBom;
+import com.blackducksoftware.integration.hub.fod.batch.model.ComponentVersionOriginBom;
 import com.blackducksoftware.integration.hub.fod.batch.model.FortifyUploadRequest;
 import com.blackducksoftware.integration.hub.fod.batch.model.HubProjectVersion;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedMatchedFilesView;
-import com.blackducksoftware.integration.hub.fod.batch.model.TransformedOriginView;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedVulnerabilityWithRemediationView;
 import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
 import com.blackducksoftware.integration.hub.fod.utils.TransformViewsUtil;
-import com.blackducksoftware.integration.hub.fod.utils.VulnerabilityUtil;
-import com.blackducksoftware.integration.hub.model.view.MatchedFilesView;
+import com.blackducksoftware.integration.hub.model.view.ComponentVersionView;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomComponentView;
 import com.blackducksoftware.integration.hub.model.view.VulnerabilityView;
-import com.blackducksoftware.integration.hub.model.view.VulnerabilityWithRemediationView;
-import com.blackducksoftware.integration.hub.model.view.VulnerableComponentView;
 import com.blackducksoftware.integration.hub.model.view.components.OriginView;
-import com.blackducksoftware.integration.hub.model.view.components.VersionBomLicenseView;
 import com.google.gson.Gson;
 
 /**
@@ -205,46 +198,35 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
      */
     private FortifyUploadRequest mergeVulnerabilities(final List<ProjectVersionView> projectVersionItems, final List<HubProjectVersion> hubProjectVersions)
             throws IllegalArgumentException, IntegrationException {
-        Map<String, ComponentVersionBom> componentVersionBoms = new HashMap<>();
+        List<ComponentVersionOriginBom> componentVersionBoms = new ArrayList<>();
         // For each Hub project version, get the component version bom and add it to the fortify request
         for (ProjectVersionView projectVersionItem : projectVersionItems) {
             logger.info("Getting Hub Aggregated Bom info for project::" + hubProjectVersions.get(0).getHubProject() + ", version::"
                     + hubProjectVersions.get(0).getHubProjectVersion());
-            final List<VulnerableComponentView> vulnerabilities = hubServices.getVulnerabilityComponentViews(projectVersionItem);
-            final Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents = VulnerabilityUtil
-                    .groupByVulnerabilityByComponent(vulnerabilities);
 
             // Get all the components and its risk information for the project version
-            final List<VersionBomComponentView> allComponents = hubServices.getAggregatedComponentLists(projectVersionItem);
+            final List<VersionBomComponentView> componentVersions = hubServices.getAggregatedComponentLists(projectVersionItem);
 
-            // Remove the duplicate components across the Hub project version.
-            for (VersionBomComponentView component : allComponents) {
-                ComponentVersionBom componentVersionBom = getComponentVersionBom(component, groupByVulnerabilityComponents);
-                if (hubProjectVersions.size() > 1 && componentVersionBoms.containsKey(component.componentVersion)) {
-                    componentVersionBom = new ComponentVersionBom(componentVersionBom.getComponentName(),
-                            componentVersionBom.getComponentVersionName(), componentVersionBom.getComponentUrl(), componentVersionBom.getComponentVersionUrl(),
-                            componentVersionBom.getTotalVulnerabilities(), componentVersionBom.getVulnerabilities(),
-                            componentVersionBom.getTotalMatchedFilesCount(), componentVersionBom.getMatchedFiles(), componentVersionBom.getLicenses(),
-                            componentVersionBom.getOrigins(), componentVersionBom.getUsages(), componentVersionBom.getReleasedOn(),
-                            componentVersionBom.getLicenseRiskProfile(), componentVersionBom.getSecurityRiskProfile(),
-                            componentVersionBom.getVersionRiskProfile(), componentVersionBom.getActivityRiskProfile(),
-                            componentVersionBom.getOperationalRiskProfile(), componentVersionBom.getActivityData(), componentVersionBom.getReviewStatus(),
-                            componentVersionBom.getReviewedDetails(), componentVersionBom.getApprovalStatus());
+            // Iterate through each component version
+            for (VersionBomComponentView componentVersion : componentVersions) {
+                // Iterate through each component version origin
+                for (OriginView origin : componentVersion.origins) {
+                    // Get the component version origin bom
+                    componentVersionBoms.add(getComponentVersionOriginBom(componentVersion, origin));
                 }
-                componentVersionBoms.put(component.componentVersion, componentVersionBom);
             }
         }
 
         // Return the Fortify upload request
         return new FortifyUploadRequest(componentVersionBoms.size(), propertyConstants.getHubServerUrl(), hubProjectVersions.get(0).getHubProject(),
                 hubProjectVersions.get(0).getHubProjectVersion(), projectVersionItems.get(0).meta.href.replaceAll(propertyConstants.getHubServerUrl(), ""),
-                maxBomUpdatedDate, new ArrayList<>(componentVersionBoms.values()));
+                maxBomUpdatedDate, componentVersionBoms);
     }
 
     /**
      * Get the Component version Bom for the given component
      *
-     * @param component
+     * @param componentVersion
      * @param hubProjectVersion
      * @param groupByVulnerabilityComponents
      * @param projectReleaseUrl
@@ -252,51 +234,43 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
      * @throws IllegalArgumentException
      * @throws IntegrationException
      */
-    private ComponentVersionBom getComponentVersionBom(final VersionBomComponentView component,
-            final Map<String, List<VulnerabilityWithRemediationView>> groupByVulnerabilityComponents)
+    private ComponentVersionOriginBom getComponentVersionOriginBom(final VersionBomComponentView componentVersion, final OriginView origin)
             throws IllegalArgumentException, IntegrationException {
-        logger.debug("Getting Component Version Bom for component::" + component.componentName + ", version::" + component.componentVersionName);
-        List<MatchedFilesView> consolidatedMatchedFiles = new ArrayList<>();
-        // For each origin, get the matched files view
-        for (OriginView origin : component.origins) {
-            consolidatedMatchedFiles.addAll(hubServices.getMatchedFiles(origin));
-        }
-        final List<TransformedMatchedFilesView> matchedFiles = TransformViewsUtil.transformMatchedFilesView(consolidatedMatchedFiles);
+        logger.debug("Getting Component Version Origin Bom for component::" + componentVersion.componentName + ", version::"
+                + componentVersion.componentVersionName + ", origin::" + origin.name);
+        // Get the matched file for the component version origin
+        final List<TransformedMatchedFilesView> matchedFiles = TransformViewsUtil
+                .transformMatchedFilesView(hubServices.getMatchedFiles(origin));
 
-        final List<TransformedOriginView> origins = TransformViewsUtil.transformOriginView(component.origins, propertyConstants);
+        // Get the component version origin information
+        final String componentVersionOriginUrl = hubServices.getComponentVersionOriginUrl(origin);
+        ComponentVersionView componentVersionOriginView = hubServices.getComponentVersionOriginView(componentVersionOriginUrl);
 
-        // Get the Component Version Vulnerability url for the component
-        String componentVersionVulnerabilityUrl = hubServices.getComponentVersionVulnerabilityUrl(component.componentVersion);
+        // Get the component version origin vulnerability information
+        final List<VulnerabilityView> vulnerableComponentView = hubServices
+                .getVulnerabilities(hubServices.getComponentVersionOriginVulnerabilityUrl(componentVersionOriginView));
 
-        // Get the Vulnerabilities for the component
-        final List<VulnerabilityView> vulnerableComponentView = hubServices.getVulnerabilities(componentVersionVulnerabilityUrl);
-        final List<TransformedVulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = TransformViewsUtil.transformVulnerabilityRemediationView(
-                vulnerableComponentView, groupByVulnerabilityComponents, component.componentVersion);
+        List<TransformedVulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = TransformViewsUtil.transformVulnerabilityRemediationView(
+                vulnerableComponentView, propertyConstants);
 
-        // return the component version bom
-        return new ComponentVersionBom(component.componentName, component.componentVersionName, component.component, component.componentVersion,
-                vulnerabilityWithRemediationViews.size(), vulnerabilityWithRemediationViews, matchedFiles.size(), matchedFiles,
-                removeHubServerUrlFromLicense(component.licenses), origins, component.usages, component.releasedOn, component.licenseRiskProfile,
-                component.securityRiskProfile, component.versionRiskProfile, component.activityRiskProfile, component.operationalRiskProfile,
-                component.activityData, component.reviewStatus, component.reviewedDetails, component.approvalStatus);
-    }
-
-    /**
-     * Replace the Hub Server Url in License with none
-     *
-     * @param licenses
-     * @return
-     */
-    private List<VersionBomLicenseView> removeHubServerUrlFromLicense(List<VersionBomLicenseView> licenses) {
-        // Replace the Hub Server Url in License with none
-        for (int i = 0; licenses != null && i < licenses.size(); i++) {
-            for (int j = 0; licenses.get(i).licenses != null && j < licenses.get(i).licenses.size(); j++) {
-                if (licenses.get(i).licenses.get(j).license != null) {
-                    licenses.get(i).licenses.get(j).license = licenses.get(i).licenses.get(j).license.replaceAll(propertyConstants.getHubServerUrl(), "");
+        if (componentVersionOriginView.license != null) {
+            for (int i = 0; componentVersionOriginView.license.licenses != null && i < componentVersionOriginView.license.licenses.size(); i++) {
+                if (componentVersionOriginView.license.licenses.get(i).license != null) {
+                    componentVersionOriginView.license.licenses.get(i).license = componentVersionOriginView.license.licenses.get(i).license
+                            .replaceAll(propertyConstants.getHubServerUrl(), "");
                 }
             }
         }
 
-        return licenses;
+        return new ComponentVersionOriginBom(componentVersion.componentName, componentVersion.componentVersionName,
+                componentVersion.component.replaceAll(propertyConstants.getHubServerUrl(), ""),
+                componentVersion.componentVersion.replaceAll(propertyConstants.getHubServerUrl(), ""), origin.name, origin.externalNamespace,
+                origin.externalId, componentVersionOriginUrl.replaceAll(propertyConstants.getHubServerUrl(), ""),
+                vulnerabilityWithRemediationViews.size(), vulnerabilityWithRemediationViews, matchedFiles.size(), matchedFiles,
+                componentVersionOriginView.license, componentVersion.usages, componentVersion.releasedOn, componentVersion.licenseRiskProfile,
+                componentVersion.securityRiskProfile, componentVersion.versionRiskProfile, componentVersion.activityRiskProfile,
+                componentVersion.operationalRiskProfile, componentVersion.activityData, componentVersion.reviewStatus, componentVersion.reviewedDetails,
+                componentVersion.approvalStatus);
+
     }
 }

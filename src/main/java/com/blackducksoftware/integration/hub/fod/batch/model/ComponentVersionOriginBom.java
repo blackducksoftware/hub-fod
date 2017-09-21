@@ -29,10 +29,10 @@ import java.util.List;
 
 import com.blackducksoftware.integration.hub.model.enumeration.MatchedFileUsageEnum;
 import com.blackducksoftware.integration.hub.model.enumeration.ReviewStatusEnum;
+import com.blackducksoftware.integration.hub.model.view.ComplexLicenseView;
 import com.blackducksoftware.integration.hub.model.view.components.ActivityDataView;
 import com.blackducksoftware.integration.hub.model.view.components.ReviewedDetailsView;
 import com.blackducksoftware.integration.hub.model.view.components.RiskProfileView;
-import com.blackducksoftware.integration.hub.model.view.components.VersionBomLicenseView;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -50,6 +50,11 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
         "componentVersionName",
         "componentUrl",
         "componentVersionUrl",
+        "originName",
+        "externalNamespace",
+        "externalId",
+        //"externalNamespaceDistribution",
+        "componentVersionOriginUrl",
         "totalVulnerabilities",
         "vulnerabilities",
         "totalMatchedFilesCount",
@@ -68,7 +73,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
         "reviewedDetails",
         "approvalStatus"
 })
-public class ComponentVersionBom {
+public class ComponentVersionOriginBom {
 
     @JsonProperty("componentName")
     private final String componentName;
@@ -81,6 +86,21 @@ public class ComponentVersionBom {
 
     @JsonProperty("componentVersionUrl")
     private final String componentVersionUrl;
+
+    @JsonProperty("originName")
+    private final String originName;
+
+    @JsonProperty("externalNamespace")
+    private final String externalNamespace;
+
+    @JsonProperty("externalId")
+    private final String externalId;
+
+    /*@JsonProperty("externalNamespaceDistribution")
+    private final boolean externalNamespaceDistribution;*/
+
+    @JsonProperty("componentVersionOriginUrl")
+    private final String componentVersionOriginUrl;
 
     @JsonProperty("totalVulnerabilities")
     private final int totalVulnerabilities;
@@ -95,10 +115,7 @@ public class ComponentVersionBom {
     private final List<TransformedMatchedFilesView> matchedFiles;
 
     @JsonProperty("licenses")
-    private final List<VersionBomLicenseView> licenses;
-
-    @JsonProperty("origins")
-    private final List<TransformedOriginView> origins;
+    private final ComplexLicenseView licenses;
 
     @JsonProperty("usages")
     private final List<MatchedFileUsageEnum> usages;
@@ -133,22 +150,27 @@ public class ComponentVersionBom {
     @JsonProperty("approvalStatus")
     private final String approvalStatus;
 
-    public ComponentVersionBom(String componentName, String componentVersionName, String componentUrl, String componentVersionUrl, int totalVulnerabilities,
+    public ComponentVersionOriginBom(String componentName, String componentVersionName, String componentUrl, String componentVersionUrl, String originName,
+            String externalNamespace, String externalId, /*boolean externalNamespaceDistribution,*/ String componentVersionOriginUrl, int totalVulnerabilities,
             List<TransformedVulnerabilityWithRemediationView> vulnerabilities, int totalMatchedFilesCount, List<TransformedMatchedFilesView> matchedFiles,
-            List<VersionBomLicenseView> licenses, List<TransformedOriginView> origins, List<MatchedFileUsageEnum> usages, Date releasedOn,
-            RiskProfileView licenseRiskProfile, RiskProfileView securityRiskProfile, RiskProfileView versionRiskProfile, RiskProfileView activityRiskProfile,
+            ComplexLicenseView licenses, List<MatchedFileUsageEnum> usages, Date releasedOn, RiskProfileView licenseRiskProfile,
+            RiskProfileView securityRiskProfile, RiskProfileView versionRiskProfile, RiskProfileView activityRiskProfile,
             RiskProfileView operationalRiskProfile, ActivityDataView activityData, ReviewStatusEnum reviewStatus, ReviewedDetailsView reviewedDetails,
             String approvalStatus) {
         this.componentName = componentName;
         this.componentVersionName = componentVersionName;
         this.componentUrl = componentUrl;
         this.componentVersionUrl = componentVersionUrl;
+        this.originName = originName;
+        this.externalNamespace = externalNamespace;
+        this.externalId = externalId;
+        //this.externalNamespaceDistribution = externalNamespaceDistribution;
+        this.componentVersionOriginUrl = componentVersionOriginUrl;
         this.totalVulnerabilities = totalVulnerabilities;
         this.vulnerabilities = vulnerabilities;
         this.totalMatchedFilesCount = totalMatchedFilesCount;
         this.matchedFiles = matchedFiles;
         this.licenses = licenses;
-        this.origins = origins;
         this.usages = usages;
         this.releasedOn = releasedOn;
         this.licenseRiskProfile = licenseRiskProfile;
@@ -178,6 +200,26 @@ public class ComponentVersionBom {
         return componentVersionUrl;
     }
 
+    public String getOriginName() {
+        return originName;
+    }
+
+    public String getExternalNamespace() {
+        return externalNamespace;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    /*public boolean getExternalNamespaceDistribution() {
+        return externalNamespaceDistribution;
+    }
+*/
+    public String getComponentVersionOriginUrl() {
+        return componentVersionOriginUrl;
+    }
+
     public int getTotalVulnerabilities() {
         return totalVulnerabilities;
     }
@@ -194,12 +236,8 @@ public class ComponentVersionBom {
         return matchedFiles;
     }
 
-    public List<VersionBomLicenseView> getLicenses() {
+    public ComplexLicenseView getLicenses() {
         return licenses;
-    }
-
-    public List<TransformedOriginView> getOrigins() {
-        return origins;
     }
 
     public List<MatchedFileUsageEnum> getUsages() {
@@ -248,11 +286,12 @@ public class ComponentVersionBom {
 
     @Override
     public String toString() {
-        return "ComponentVersionBom [componentName=" + componentName + ", componentVersionName=" + componentVersionName + ", componentUrl=" + componentUrl
-                + ", componentVersionUrl=" + componentVersionUrl + ", totalVulnerabilities=" + totalVulnerabilities + ", vulnerabilities=" + vulnerabilities
-                + ", totalMatchedFilesCount=" + totalMatchedFilesCount + ", matchedFiles=" + matchedFiles + ", licenses=" + licenses + ", origins=" + origins
-                + ", usages=" + usages + ", releasedOn=" + releasedOn + ", licenseRiskProfile=" + licenseRiskProfile + ", securityRiskProfile="
-                + securityRiskProfile + ", versionRiskProfile=" + versionRiskProfile + ", activityRiskProfile=" + activityRiskProfile
+        return "ComponentVersionOriginBom [componentName=" + componentName + ", componentVersionName=" + componentVersionName + ", componentUrl=" + componentUrl
+                + ", componentVersionUrl=" + componentVersionUrl + ", originName=" + originName + ", externalNamespace=" + externalNamespace + ", externalId="
+                + externalId + ", componentVersionOriginUrl=" + componentVersionOriginUrl + ", totalVulnerabilities=" + totalVulnerabilities
+                + ", vulnerabilities=" + vulnerabilities + ", totalMatchedFilesCount=" + totalMatchedFilesCount + ", matchedFiles=" + matchedFiles
+                + ", licenses=" + licenses + ", usages=" + usages + ", releasedOn=" + releasedOn + ", licenseRiskProfile=" + licenseRiskProfile
+                + ", securityRiskProfile=" + securityRiskProfile + ", versionRiskProfile=" + versionRiskProfile + ", activityRiskProfile=" + activityRiskProfile
                 + ", operationalRiskProfile=" + operationalRiskProfile + ", activityData=" + activityData + ", reviewStatus=" + reviewStatus
                 + ", reviewedDetails=" + reviewedDetails + ", approvalStatus=" + approvalStatus + "]";
     }
