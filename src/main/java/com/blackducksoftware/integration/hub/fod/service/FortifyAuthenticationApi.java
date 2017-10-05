@@ -48,18 +48,18 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public final class FortifyAuthenticationApi extends FortifyService {
 
-    private final static String PASSWORD = "password";
+    private final String PASSWORD = "password";
 
-    private final static String CLIENT_CREDENTIALS = "client_credentials";
+    private final String CLIENT_CREDENTIALS = "client_credentials";
 
     private final static Logger logger = Logger.getLogger(FortifyAuthenticationApi.class);
 
-    private final static OkHttpClient.Builder okBuilder = getOkHttpClientBuilder();
+    private final OkHttpClient.Builder okBuilder = getOkHttpClientBuilder();
 
-    private final static Retrofit retrofit = new Retrofit.Builder().baseUrl(PropertyConstants.getFortifyServerUrl())
+    private final Retrofit retrofit = new Retrofit.Builder().baseUrl(PropertyConstants.getFortifyServerUrl())
             .addConverterFactory(GsonConverterFactory.create()).client(okBuilder.build()).build();
 
-    private final static FortifyAuthenticationApiService apiService = retrofit.create(FortifyAuthenticationApiService.class);
+    private final FortifyAuthenticationApiService apiService = retrofit.create(FortifyAuthenticationApiService.class);
 
     /**
      * Get the access token to call the Fortify api

@@ -176,6 +176,13 @@ public class PropertyConstants {
         PropertyConstants.mappingJsonPath = mappingJsonPath;
     }
 
+    private String attributeFilePath;
+
+    @Value("${attribute.file}")
+    public void setAttributeFilePath(String attributeFilePath) {
+        this.attributeFilePath = attributeFilePath;
+    }
+
     private static int maximumThreadSize;
 
     @Value("${maximum.thread.size}")
@@ -268,6 +275,10 @@ public class PropertyConstants {
 
     public static String getMappingJsonPath() {
         return mappingJsonPath;
+    }
+
+    public String getAttributeFilePath() {
+        return attributeFilePath;
     }
 
     public static int getMaximumThreadSize() {

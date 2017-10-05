@@ -50,15 +50,16 @@ import okhttp3.logging.HttpLoggingInterceptor.Level;
  *
  */
 public abstract class FortifyService {
-    private final static int CONNECTION_TIMEOUT = 10;
 
-    private final static int WRITE_TIMEOUT = 30;
+    private final int CONNECTION_TIMEOUT = 10;
 
-    private final static int READ_TIMEOUT = 30;
+    private final int WRITE_TIMEOUT = 30;
 
-    public final static int MAX_SIZE = 50;
+    private final int READ_TIMEOUT = 30;
 
-    public static Builder getOkHttpClientBuilder() {
+    public final int MAX_SIZE = 50;
+
+    public Builder getOkHttpClientBuilder() {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(Level.BODY);
         OkHttpClient.Builder okBuilder = new OkHttpClient.Builder()
@@ -96,7 +97,7 @@ public abstract class FortifyService {
         return okBuilder;
     }
 
-    private static boolean shouldUseProxyForUrl(final URL url) {
+    private boolean shouldUseProxyForUrl(final URL url) {
         if (StringUtils.isBlank(PropertyConstants.getProxyHost())) {
             return false;
         }

@@ -49,6 +49,8 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 
 import com.blackducksoftware.integration.hub.fod.batch.model.BlackDuckFortifyMapperGroup;
+import com.blackducksoftware.integration.hub.fod.service.FortifyAuthenticationApi;
+import com.blackducksoftware.integration.hub.fod.service.FortifyOpenSourceScansApi;
 import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.fod.utils.MappingParser;
 import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
@@ -72,9 +74,16 @@ public class Initializer implements Tasklet, StepExecutionListener {
 
     private final HubServices hubServices;
 
-    public Initializer(final MappingParser mappingParser, final HubServices hubServices) {
+    private final FortifyOpenSourceScansApi fortifyOpenSourceScansApi;
+
+    private final FortifyAuthenticationApi fortifyAuthenticationApi;
+
+    public Initializer(final MappingParser mappingParser, final HubServices hubServices, final FortifyAuthenticationApi fortifyAuthenticationApi,
+            final FortifyOpenSourceScansApi fortifyOpenSourceScansApi) {
         this.mappingParser = mappingParser;
         this.hubServices = hubServices;
+        this.fortifyAuthenticationApi = fortifyAuthenticationApi;
+        this.fortifyOpenSourceScansApi = fortifyOpenSourceScansApi;
     }
 
     @Override
@@ -91,7 +100,8 @@ public class Initializer implements Tasklet, StepExecutionListener {
         List<Future<?>> futures = new ArrayList<>(groupMap.size());
 
         for (BlackDuckFortifyMapperGroup blackDuckFortifyMapperGroup : groupMap) {
-            futures.add(exec.submit(new BlackDuckFortifyPushThread(blackDuckFortifyMapperGroup, hubServices)));
+            futures.add(
+                    exec.submit(new BlackDuckFortifyPushThread(blackDuckFortifyMapperGroup, hubServices, fortifyAuthenticationApi, fortifyOpenSourceScansApi)));
         }
         for (Future<?> f : futures) {
             f.get(); // wait for a processor to complete

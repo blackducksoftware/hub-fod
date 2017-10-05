@@ -35,10 +35,13 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.apache.log4j.Logger;
+import org.springframework.web.client.RestClientException;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.fod.batch.model.BlackDuckFortifyMapperGroup;
@@ -47,6 +50,9 @@ import com.blackducksoftware.integration.hub.fod.batch.model.FortifyUploadReques
 import com.blackducksoftware.integration.hub.fod.batch.model.HubProjectVersion;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedMatchedFilesView;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedVulnerabilityWithRemediationView;
+import com.blackducksoftware.integration.hub.fod.domain.FortifyImportSession;
+import com.blackducksoftware.integration.hub.fod.service.FortifyAuthenticationApi;
+import com.blackducksoftware.integration.hub.fod.service.FortifyOpenSourceScansApi;
 import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
 import com.blackducksoftware.integration.hub.fod.utils.TransformViewsUtil;
@@ -79,14 +85,21 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
 
     private final HubServices hubServices;
 
-    public BlackDuckFortifyPushThread(final BlackDuckFortifyMapperGroup blackDuckFortifyMapperGroup, final HubServices hubServices) {
+    private final FortifyOpenSourceScansApi fortifyOpenSourceScansApi;
+
+    private final FortifyAuthenticationApi fortifyAuthenticationApi;
+
+    public BlackDuckFortifyPushThread(final BlackDuckFortifyMapperGroup blackDuckFortifyMapperGroup, final HubServices hubServices,
+            final FortifyAuthenticationApi fortifyAuthenticationApi, final FortifyOpenSourceScansApi fortifyOpenSourceScansApi) {
         this.blackDuckFortifyMapperGroup = blackDuckFortifyMapperGroup;
         this.hubServices = hubServices;
+        this.fortifyOpenSourceScansApi = fortifyOpenSourceScansApi;
+        this.fortifyAuthenticationApi = fortifyAuthenticationApi;
     }
 
     @Override
-    public Boolean call() throws DateTimeParseException, IntegrationException, IllegalArgumentException,
-            FileNotFoundException, UnsupportedEncodingException, IOException {
+    public Boolean call() throws DateTimeParseException, IntegrationException, IllegalArgumentException, FileNotFoundException, UnsupportedEncodingException,
+            IOException, RestClientException, InterruptedException, DateTimeParseException {
 
         logger.info("blackDuckFortifyMapper::" + blackDuckFortifyMapperGroup.toString());
         final List<HubProjectVersion> hubProjectVersions = blackDuckFortifyMapperGroup.getHubProjectVersion();
@@ -106,10 +119,9 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
                 || (!PropertyConstants.isBatchJobStatusCheck())) {
             // Get the vulnerabilities for all Hub project versions and merge it
             FortifyUploadRequest fortifyUploadRequest = mergeVulnerabilities(projectVersionItems, hubProjectVersions);
-            Gson gson = new Gson();
-            // 2. Java object to JSON, and assign to a String
-            String jsonInString = gson.toJson(fortifyUploadRequest);
-            logger.debug("fortifyUploadRequest::" + jsonInString);
+
+            // Upload the Final JSON request to Fortify
+            uploadRequest(fortifyUploadRequest);
         }
         return true;
 
@@ -193,7 +205,7 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
      * @throws IntegrationException
      */
     private FortifyUploadRequest mergeVulnerabilities(final List<ProjectVersionView> projectVersionItems, final List<HubProjectVersion> hubProjectVersions)
-            throws IllegalArgumentException, IntegrationException {
+            throws IllegalArgumentException, IntegrationException, DateTimeParseException {
         List<ComponentVersionOriginBom> componentVersionBoms = new ArrayList<>();
         // For each Hub project version, get the component version bom and add it to the fortify request
         for (ProjectVersionView projectVersionItem : projectVersionItems) {
@@ -202,13 +214,22 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
 
             // Get all the components and its risk information for the project version
             final List<VersionBomComponentView> componentVersions = hubServices.getAggregatedComponentLists(projectVersionItem);
+            Map<String, String> keys = new HashMap<>();
+            String key = null;
 
             // Iterate through each component version
             for (VersionBomComponentView componentVersion : componentVersions) {
                 // Iterate through each component version origin
                 for (OriginView origin : componentVersion.origins) {
-                    // Get the component version origin bom
-                    componentVersionBoms.add(getComponentVersionOriginBom(componentVersion, origin));
+                    key = componentVersion.componentName + componentVersion.componentVersionName + origin.name;
+                    if (keys.containsKey(key)) {
+                        continue;
+                    } else {
+                        keys.put(componentVersion.componentName + componentVersion.componentVersionName + origin.name,
+                                componentVersion.componentName + componentVersion.componentVersionName + origin.name);
+                        // Get the component version origin bom
+                        componentVersionBoms.add(getComponentVersionOriginBom(componentVersion, origin));
+                    }
                 }
             }
         }
@@ -231,7 +252,7 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
      * @throws IntegrationException
      */
     private ComponentVersionOriginBom getComponentVersionOriginBom(final VersionBomComponentView componentVersion, final OriginView origin)
-            throws IllegalArgumentException, IntegrationException {
+            throws IllegalArgumentException, IntegrationException, DateTimeParseException {
         logger.debug("Getting Component Version Origin Bom for component::" + componentVersion.componentName + ", version::"
                 + componentVersion.componentVersionName + ", origin::" + origin.name);
         // Get the matched file for the component version origin
@@ -247,7 +268,7 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
                 .getVulnerabilities(hubServices.getComponentVersionOriginVulnerabilityUrl(componentVersionOriginView));
 
         List<TransformedVulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = TransformViewsUtil.transformVulnerabilityRemediationView(
-                vulnerableComponentView);
+                vulnerableComponentView, hubServices);
 
         if (componentVersionOriginView.license != null) {
             for (int i = 0; componentVersionOriginView.license.licenses != null && i < componentVersionOriginView.license.licenses.size(); i++) {
@@ -267,5 +288,35 @@ public class BlackDuckFortifyPushThread implements Callable<Boolean> {
                 componentVersion.operationalRiskProfile, componentVersion.activityData, componentVersion.reviewStatus, componentVersion.reviewedDetails,
                 componentVersion.approvalStatus);
 
+    }
+
+    /**
+     * Upload the Fortify JSON request by calling the Fortify Open source scan Api's
+     *
+     * @param fortifyUploadRequest
+     * @throws IOException
+     * @throws IntegrationException
+     * @throws RestClientException
+     * @throws InterruptedException
+     */
+    private void uploadRequest(final FortifyUploadRequest fortifyUploadRequest)
+            throws IOException, IntegrationException, RestClientException, InterruptedException {
+
+        Gson gson = new Gson();
+        // Java object to JSON, and assign to a String
+        String fortifyUploadData = gson.toJson(fortifyUploadRequest);
+        byte[] fortifyUploadBytes = fortifyUploadData.getBytes();
+        // logger.debug("fortifyUploadRequest::" + jsonInString);
+
+        // Get the bearer token
+        String accessToken = fortifyAuthenticationApi.getAuthenticatedToken();
+        long vulnJsonLength = fortifyUploadBytes.length;
+
+        // Get the Fortify import session id
+        String sessionId = fortifyOpenSourceScansApi.getImportSessionId(accessToken,
+                new FortifyImportSession(blackDuckFortifyMapperGroup.getFortifyReleaseId(), vulnJsonLength, "BlackDuck"));
+
+        // Using the import session id, upload the fortify JSON request
+        fortifyOpenSourceScansApi.uploadVulnerabilities(accessToken, sessionId, fortifyUploadBytes, vulnJsonLength);
     }
 }

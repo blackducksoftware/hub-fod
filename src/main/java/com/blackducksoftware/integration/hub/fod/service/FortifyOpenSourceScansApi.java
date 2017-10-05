@@ -23,7 +23,7 @@
 package com.blackducksoftware.integration.hub.fod.service;
 
 import java.io.BufferedInputStream;
-import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,23 +44,26 @@ import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import okhttp3.OkHttpClient;
-import okhttp3.OkHttpClient.Builder;
-import okhttp3.logging.HttpLoggingInterceptor;
-import okhttp3.logging.HttpLoggingInterceptor.Level;
-
+/**
+ * This class will act as a REST client to access the Fortify upload api
+ *
+ * @author smanikantan
+ *
+ */
 public class FortifyOpenSourceScansApi {
 
     private final static Logger logger = Logger.getLogger(FortifyOpenSourceScansApi.class);
 
-    private final static String FOD_API_URL_VERSION = "/api/v3/releases/";
+    private final String FOD_API_URL_VERSION = "/api/v3/releases/";
 
-    private final static String IMPORT_SESSIONID = "open-source-scans/import-session-id";
+    private final String IMPORT_SESSIONID = "open-source-scans/import-session-id";
 
-    private final static String IMPORT_OPEN_SOURCE_VULNERABILITIES = "open-source-scans/import-scan";
+    private final String IMPORT_OPEN_SOURCE_VULNERABILITIES = "open-source-scans/import-scan";
 
     // 1MiB chunks are preferred 1,048,576 or 512,000 102,400
-    public final static int FRAG_SIZE = 1048576;
+    public final int FRAG_SIZE = 1048576;
+
+    public boolean lock = true;
 
     /**
      * Get the import session id
@@ -68,17 +71,16 @@ public class FortifyOpenSourceScansApi {
      * @param accessToken
      * @param applicationId
      * @return
+     * @throws InterruptedException
      * @throws Exception
      */
-    public String getImportSessionId(String accessToken, FortifyImportSession fortifyImportSession) throws RestClientException {
+    public synchronized String getImportSessionId(String accessToken, FortifyImportSession fortifyImportSession)
+            throws RestClientException, InterruptedException {
         String importSessionId = null;
         try {
-            RestTemplate restTemplate = new RestTemplate();
+            Thread.sleep(30000);
 
-            // Set the Http Header
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Authorization", "Bearer " + accessToken);
-            headers.setContentType(MediaType.APPLICATION_JSON);
+            RestTemplate restTemplate = new RestTemplate();
 
             // Set the Http Request
             JsonObject requestJson = new JsonObject();
@@ -88,7 +90,7 @@ public class FortifyOpenSourceScansApi {
 
             logger.debug("Requesting Session ID to FoD:" + requestJson.toString());
 
-            final HttpEntity<String> request = new HttpEntity<>(requestJson.toString(), headers);
+            final HttpEntity<String> request = new HttpEntity<>(requestJson.toString(), getHttpHeader(accessToken, MediaType.APPLICATION_JSON));
 
             // Get the Session ID
             final ResponseEntity<String> response = restTemplate.exchange(PropertyConstants.getFortifyServerUrl() + FOD_API_URL_VERSION + IMPORT_SESSIONID,
@@ -108,24 +110,31 @@ public class FortifyOpenSourceScansApi {
         return importSessionId;
     }
 
-    public void uploadVulnerabilities(String accessToken, String sessionId, String uploadFilePath, long fileLength) throws IOException {
+    /**
+     * Upload the risks to Fortify
+     *
+     * @param accessToken
+     * @param sessionId
+     * @param fortifyUploadStream
+     * @param fileLength
+     * @throws IOException
+     */
+    public void uploadVulnerabilities(String accessToken, String sessionId, byte[] fortifyUploadStream, long fileLength) throws IOException {
 
         RestTemplate restTemplate = new RestTemplate();
         List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
         // interceptors.add(new LoggingRequestInterceptor());
         restTemplate.setInterceptors(interceptors);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-
         int fragSize = FRAG_SIZE;
         byte[] fragBytes = null;
         int totalBytesRead = 0;
         int numberOfFrags = 0;
+        BufferedInputStream vulnFileStream = null;
 
         // Chunk it up and send to FoD
-        try (BufferedInputStream vulnFileStream = new BufferedInputStream(new FileInputStream(uploadFilePath))) {
+        try {
+            vulnFileStream = new BufferedInputStream(new ByteArrayInputStream(fortifyUploadStream));
             ResponseEntity<String> response = null;
 
             while (totalBytesRead < (int) fileLength) {
@@ -138,19 +147,17 @@ public class FortifyOpenSourceScansApi {
                 fragBytes = new byte[fragSize];
                 int bytesRead = vulnFileStream.read(fragBytes, 0, fragSize);
 
-                HttpEntity<byte[]> request = new HttpEntity<>(fragBytes, headers);
+                HttpEntity<byte[]> request = new HttpEntity<>(fragBytes, getHttpHeader(accessToken, MediaType.APPLICATION_OCTET_STREAM));
 
                 String importURL = PropertyConstants.getFortifyServerUrl() + FOD_API_URL_VERSION + IMPORT_OPEN_SOURCE_VULNERABILITIES + "/?fragNo="
-                        + String.valueOf(numberOfFrags)
-                        + "&offset=" + totalBytesRead
-                        + "&importSessionId=" + sessionId;
+                        + String.valueOf(numberOfFrags) + "&offset=" + totalBytesRead + "&importSessionId=" + sessionId;
 
                 logger.debug("Attempting PUT with: " + importURL);
 
                 response = restTemplate.exchange(importURL, HttpMethod.PUT, request, String.class);
-
                 totalBytesRead += bytesRead;
                 numberOfFrags++;
+
                 logger.debug("Total Bytes Read: " + totalBytesRead);
                 logger.debug("Response body::" + response.hasBody() + ", " + response.getBody());
             }
@@ -165,14 +172,33 @@ public class FortifyOpenSourceScansApi {
             logger.error("Sending Vulnerabilities to FoD failed. Please contact Black Duck with this error and stack trace:");
             e.printStackTrace();
             throw e;
+        } finally {
+            if (vulnFileStream != null)
+                vulnFileStream.close();
         }
     }
 
-    public static Builder getHeader() {
-        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-        logging.setLevel(Level.BODY);
-        OkHttpClient.Builder okBuilder = new OkHttpClient.Builder();
-        okBuilder.addInterceptor(logging);
-        return okBuilder;
+    /**
+     * Get the Http Header
+     *
+     * @param accessToken
+     * @param mediaType
+     * @return
+     */
+    private HttpHeaders getHttpHeader(String accessToken, MediaType mediaType) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+        headers.setContentType(mediaType);
+        return headers;
     }
+
+    /*
+     * private Builder getHeader() {
+     * HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+     * logging.setLevel(Level.BODY);
+     * OkHttpClient.Builder okBuilder = new OkHttpClient.Builder();
+     * okBuilder.addInterceptor(logging);
+     * return okBuilder;
+     * }
+     */
 }

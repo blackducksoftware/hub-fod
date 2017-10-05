@@ -25,13 +25,13 @@
 package com.blackducksoftware.integration.hub.fod.service;
 
 import java.io.IOException;
+import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
-import com.blackducksoftware.integration.hub.fod.domain.FortifyUsers;
-import com.blackducksoftware.integration.hub.fod.domain.FortifyUsers.FortifyUser;
+import com.blackducksoftware.integration.hub.fod.domain.FortifyAttribute;
+import com.blackducksoftware.integration.hub.fod.domain.FortifyAttributes;
 import com.blackducksoftware.integration.hub.fod.utils.FortifyExceptionUtil;
 import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
 
@@ -42,57 +42,45 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
- * This class is used to store all the service methods related to Fortify users api
+ * This class will act as a REST client to access the Fortify Attribute Api
  *
  * @author smanikantan
  *
  */
-public class FortifyUserApi extends FortifyService {
+public class FortifyAttributeApi extends FortifyService {
+
+    private final String REQUIRED_FILTERS = "isRequired:true";
 
     private final String BEARER = "Bearer ";
 
-    private final String USER_FILTERS = "userName:";
-
-    private final static Logger logger = Logger.getLogger(FortifyUserApiService.class);
+    private final static Logger logger = Logger.getLogger(FortifyApplicationApi.class);
 
     private final OkHttpClient.Builder okBuilder = getOkHttpClientBuilder();
 
     private final Retrofit retrofit = new Retrofit.Builder().baseUrl(PropertyConstants.getFortifyServerUrl())
             .addConverterFactory(GsonConverterFactory.create()).client(okBuilder.build()).build();
 
-    private final FortifyUserApiService apiService = retrofit.create(FortifyUserApiService.class);
+    private final FortifyAttributeApiService apiService = retrofit.create(FortifyAttributeApiService.class);
 
     /**
-     * Get the application id for the given application name
+     * Get the list of required attributes
      *
      * @param accessToken
-     * @param filter
      * @return
      * @throws IOException
      * @throws IntegrationException
      */
-    public long getFortifyUsers(String accessToken) throws IOException, IntegrationException {
+    public List<FortifyAttribute> getRequiredFortifyAttributes(String accessToken) throws IOException, IntegrationException {
 
-        if (StringUtils.isEmpty(PropertyConstants.getFortifyUserName())) {
-            throw new IntegrationException("Please provide the username to create the application version");
-        }
-
-        Call<FortifyUsers> fortifyApplicationResponseCall = apiService.getFortifyUsers(BEARER + accessToken,
-                USER_FILTERS + PropertyConstants.getFortifyUserName());
-        Response<FortifyUsers> fortifyApplicationResponse;
-        long userId = 0;
+        Call<FortifyAttributes> fortifyApplicationResponseCall = apiService.getFortifyAttributes(BEARER + accessToken, REQUIRED_FILTERS);
+        Response<FortifyAttributes> fortifyApplicationResponse;
         try {
             fortifyApplicationResponse = fortifyApplicationResponseCall.execute();
-            FortifyExceptionUtil.verifyFortifyResponseCode(fortifyApplicationResponse, "Get Fortify Users Api");
-            for (FortifyUser fortifyUser : fortifyApplicationResponse.body().getFortifyUsers()) {
-                if (fortifyUser.getUserName().equalsIgnoreCase(PropertyConstants.getFortifyUserName())) {
-                    userId = fortifyUser.getUserId();
-                }
-            }
+            FortifyExceptionUtil.verifyFortifyResponseCode(fortifyApplicationResponse.code(), "Get Fortify Application Api");
         } catch (IOException e) {
-            logger.error("Error while retrieving the fortify user", e);
-            throw new IOException("Error while retrieving the fortify user", e);
+            logger.error("Error while retrieving the fortify attributes", e);
+            throw new IOException("Error while retrieving the fortify attributes", e);
         }
-        return userId;
+        return fortifyApplicationResponse.body().getFortifyAttribute();
     }
 }

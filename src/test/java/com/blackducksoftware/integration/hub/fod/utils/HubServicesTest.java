@@ -43,6 +43,7 @@ import com.blackducksoftware.integration.hub.fod.batch.model.ComponentVersionOri
 import com.blackducksoftware.integration.hub.fod.batch.model.FortifyUploadRequest;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedMatchedFilesView;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedVulnerabilityWithRemediationView;
+import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.model.view.ComponentVersionView;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.ProjectView;
@@ -64,6 +65,8 @@ public class HubServicesTest extends TestCase {
 
     private BlackDuckFortifyJobConfig blackDuckFortifyJobConfig;
 
+    private HubServices hubServices;
+
     @Override
     @Before
     public void setUp() throws JsonIOException, IOException, IntegrationException {
@@ -72,6 +75,9 @@ public class HubServicesTest extends TestCase {
                 .createMapping(PropertyConstants.getMappingJsonPath());
         PROJECT_NAME = blackDuckFortifyMappers.get(0).getHubProjectVersion().get(0).getHubProject();
         VERSION_NAME = blackDuckFortifyMappers.get(0).getHubProjectVersion().get(0).getHubProjectVersion();
+        PROJECT_NAME = "C Demo Project";
+        VERSION_NAME = "3.4";
+        hubServices = blackDuckFortifyJobConfig.getHubServices();
     }
 
     @Test
@@ -80,8 +86,8 @@ public class HubServicesTest extends TestCase {
         ProjectView project = null;
         List<ProjectVersionView> projectVersionViews = new ArrayList<>();
         try {
-            project = blackDuckFortifyJobConfig.getHubServices().getProjectByProjectName(PROJECT_NAME);
-            projectVersionViews = blackDuckFortifyJobConfig.getHubServices().getProjectVersionsByProject(project);
+            project = hubServices.getProjectByProjectName(PROJECT_NAME);
+            projectVersionViews = hubServices.getProjectVersionsByProject(project);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (IntegrationException e) {
@@ -95,7 +101,7 @@ public class HubServicesTest extends TestCase {
         System.out.println("Executing getProjectVersion");
         ProjectVersionView projectVersionItem = null;
         try {
-            projectVersionItem = blackDuckFortifyJobConfig.getHubServices().getProjectVersion(PROJECT_NAME, VERSION_NAME);
+            projectVersionItem = hubServices.getProjectVersion(PROJECT_NAME, VERSION_NAME);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (IntegrationException e) {
@@ -109,7 +115,7 @@ public class HubServicesTest extends TestCase {
         System.out.println("Executing getProjectVersionWithInvalidProjectName");
         ProjectVersionView projectVersionItem = null;
         try {
-            projectVersionItem = blackDuckFortifyJobConfig.getHubServices().getProjectVersion("Solr1", VERSION_NAME);
+            projectVersionItem = hubServices.getProjectVersion("Solr1", VERSION_NAME);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (IntegrationException e) {
@@ -125,7 +131,7 @@ public class HubServicesTest extends TestCase {
         System.out.println("Executing getProjectVersionWithInvalidVersionName");
         ProjectVersionView projectVersionItem = null;
         try {
-            projectVersionItem = blackDuckFortifyJobConfig.getHubServices().getProjectVersion(PROJECT_NAME, "3.10");
+            projectVersionItem = hubServices.getProjectVersion(PROJECT_NAME, "3.10");
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (IntegrationException e) {
@@ -141,14 +147,13 @@ public class HubServicesTest extends TestCase {
         System.out.println("Executing getVulnerability");
         ProjectVersionView projectVersionItem = null;
         try {
-            projectVersionItem = blackDuckFortifyJobConfig.getHubServices().getProjectVersion(PROJECT_NAME, VERSION_NAME);
+            projectVersionItem = hubServices.getProjectVersion(PROJECT_NAME, VERSION_NAME);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (IntegrationException e) {
             e.printStackTrace();
         }
-        List<VulnerableComponentView> vulnerableComponentViews = blackDuckFortifyJobConfig.getHubServices().getVulnerabilityComponentViews(projectVersionItem);
-        System.out.println("vulnerableComponentViews size::" + vulnerableComponentViews.size() + ", vulnerableComponentViews::" + vulnerableComponentViews);
+        List<VulnerableComponentView> vulnerableComponentViews = hubServices.getVulnerabilityComponentViews(projectVersionItem);
         assertNotNull(vulnerableComponentViews);
     }
 
@@ -157,13 +162,13 @@ public class HubServicesTest extends TestCase {
         System.out.println("Executing getBomLastUpdatedAt");
         ProjectVersionView projectVersionItem = null;
         try {
-            projectVersionItem = blackDuckFortifyJobConfig.getHubServices().getProjectVersion(PROJECT_NAME, VERSION_NAME);
+            projectVersionItem = hubServices.getProjectVersion(PROJECT_NAME, VERSION_NAME);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (IntegrationException e) {
             e.printStackTrace();
         }
-        Date bomLastUpdatedAt = blackDuckFortifyJobConfig.getHubServices().getBomLastUpdatedAt(projectVersionItem);
+        Date bomLastUpdatedAt = hubServices.getBomLastUpdatedAt(projectVersionItem);
         System.out.println("bomLastUpdatedAt::" + bomLastUpdatedAt);
         assertNotNull(bomLastUpdatedAt);
     }
@@ -171,15 +176,15 @@ public class HubServicesTest extends TestCase {
     @Test
     public void getAggregatedComponentInfo() throws IllegalArgumentException, IntegrationException {
         System.out.println("Executing getAggregatedComponentInfo");
-        final ProjectVersionView projectVersionItem = blackDuckFortifyJobConfig.getHubServices().getProjectVersion(PROJECT_NAME, VERSION_NAME);
+        final ProjectVersionView projectVersionItem = hubServices.getProjectVersion(PROJECT_NAME, VERSION_NAME);
 
         System.out.println("projectReleaseUrl::" + projectVersionItem.meta.href);
 
         // Get the last bom updated value
-        final Date bomUpdatedValueAt = blackDuckFortifyJobConfig.getHubServices().getBomLastUpdatedAt(projectVersionItem);
+        final Date bomUpdatedValueAt = hubServices.getBomLastUpdatedAt(projectVersionItem);
 
         // Get the component version bom information for the given project version
-        final List<VersionBomComponentView> allComponents = blackDuckFortifyJobConfig.getHubServices().getAggregatedComponentLists(projectVersionItem);
+        final List<VersionBomComponentView> allComponents = hubServices.getAggregatedComponentLists(projectVersionItem);
         System.out.println("allComponents::" + allComponents.get(0));
         assertNotNull(allComponents);
 
@@ -188,19 +193,19 @@ public class HubServicesTest extends TestCase {
             for (OriginView origin : component.origins) {
                 // Get the matched file for the component version origin
                 final List<TransformedMatchedFilesView> matchedFiles = TransformViewsUtil
-                        .transformMatchedFilesView(blackDuckFortifyJobConfig.getHubServices().getMatchedFiles(origin));
+                        .transformMatchedFilesView(hubServices.getMatchedFiles(origin));
 
                 // Get the component version origin information
-                final String componentVersionOriginUrl = blackDuckFortifyJobConfig.getHubServices().getComponentVersionOriginUrl(origin);
-                ComponentVersionView componentVersionOriginView = blackDuckFortifyJobConfig.getHubServices()
+                final String componentVersionOriginUrl = hubServices.getComponentVersionOriginUrl(origin);
+                ComponentVersionView componentVersionOriginView = hubServices
                         .getComponentVersionOriginView(componentVersionOriginUrl);
 
                 // Get the component version origin vulnerability information
-                final List<VulnerabilityView> vulnerableComponentView = blackDuckFortifyJobConfig.getHubServices()
-                        .getVulnerabilities(blackDuckFortifyJobConfig.getHubServices().getComponentVersionOriginVulnerabilityUrl(componentVersionOriginView));
+                final List<VulnerabilityView> vulnerableComponentView = hubServices
+                        .getVulnerabilities(hubServices.getComponentVersionOriginVulnerabilityUrl(componentVersionOriginView));
 
                 List<TransformedVulnerabilityWithRemediationView> vulnerabilityWithRemediationViews = TransformViewsUtil.transformVulnerabilityRemediationView(
-                        vulnerableComponentView);
+                        vulnerableComponentView, hubServices);
 
                 if (componentVersionOriginView.license != null) {
                     for (int i = 0; componentVersionOriginView.license.licenses != null && i < componentVersionOriginView.license.licenses.size(); i++) {
@@ -229,7 +234,7 @@ public class HubServicesTest extends TestCase {
         // Java object to JSON, and assign to a String
         Gson gson = new Gson();
         String jsonInString = gson.toJson(fortifyUploadRequest);
-        System.out.println("fortifyUploadRequest::" + jsonInString);
-        assertNotNull(fortifyUploadRequest);
+        // System.out.println("fortifyUploadRequest::" + jsonInString);
+        assertNotNull(jsonInString);
     }
 }

@@ -29,7 +29,7 @@ import java.util.List;
 
 /**
  * This class is used to store the fortify application api request and response
- * 
+ *
  * @author smanikantan
  *
  */
@@ -53,14 +53,14 @@ public final class FortifyApplication implements Serializable {
 
     private final long ownerId;
 
-    private final List<Attribute> attributes;
+    private final List<FortifyAttribute> attributes;
 
     private final String businessCriticalityType;
 
     private final String sdlcStatusType;
 
     public FortifyApplication(Long applicationId, String applicationName, String applicationDescription, String applicationType, String releaseName,
-            String releaseDescription, String emailList, long ownerId, List<Attribute> attributes, String businessCriticalityType, String sdlcStatusType) {
+            String releaseDescription, String emailList, long ownerId, List<FortifyAttribute> attributes, String businessCriticalityType, String sdlcStatusType) {
         this.applicationId = applicationId;
         this.applicationName = applicationName;
         this.applicationDescription = applicationDescription;
@@ -106,7 +106,7 @@ public final class FortifyApplication implements Serializable {
         return ownerId;
     }
 
-    public List<Attribute> getAttributes() {
+    public List<FortifyAttribute> getAttributes() {
         return attributes;
     }
 
@@ -125,32 +125,4 @@ public final class FortifyApplication implements Serializable {
                 + releaseDescription + ", emailList=" + emailList + ", ownerId=" + ownerId + ", attributes=" + attributes + ", businessCriticalityType="
                 + businessCriticalityType + ", sdlcStatusType=" + sdlcStatusType + "]";
     }
-
-    public final class Attribute implements Serializable {
-        private static final long serialVersionUID = 1L;
-
-        private final int id;
-
-        private final String value;
-
-        public Attribute(int id, String value) {
-            this.id = id;
-            this.value = value;
-        }
-
-        public int getId() {
-            return id;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        @Override
-        public String toString() {
-            return "Attribute [id=" + id + ", value=" + value + "]";
-        }
-
-    }
-
 }

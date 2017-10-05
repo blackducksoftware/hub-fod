@@ -33,7 +33,6 @@ import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
@@ -47,12 +46,15 @@ import org.springframework.scheduling.annotation.Scheduled;
 import com.blackducksoftware.integration.hub.fod.batch.BatchSchedulerConfig;
 import com.blackducksoftware.integration.hub.fod.batch.step.Initializer;
 import com.blackducksoftware.integration.hub.fod.service.FortifyApplicationApi;
+import com.blackducksoftware.integration.hub.fod.service.FortifyAttributeApi;
 import com.blackducksoftware.integration.hub.fod.service.FortifyAuthenticationApi;
 import com.blackducksoftware.integration.hub.fod.service.FortifyOpenSourceScansApi;
 import com.blackducksoftware.integration.hub.fod.service.FortifyUserApi;
 import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.fod.service.RestConnectionHelper;
+import com.blackducksoftware.integration.hub.fod.utils.AttributeConstants;
 import com.blackducksoftware.integration.hub.fod.utils.MappingParser;
+import com.blackducksoftware.integration.hub.fod.utils.TransformViewsUtil;
 
 /**
  * Schedule the batch job
@@ -61,7 +63,6 @@ import com.blackducksoftware.integration.hub.fod.utils.MappingParser;
  *
  */
 @Configuration
-@EnableBatchProcessing
 public class BlackDuckFortifyJobConfig implements JobExecutionListener {
     private final static Logger logger = Logger.getLogger(BlackDuckFortifyJobConfig.class);
 
@@ -74,6 +75,9 @@ public class BlackDuckFortifyJobConfig implements JobExecutionListener {
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
 
+    @Autowired
+    private AttributeConstants attributeConstants;
+
     /**
      * Created the bean for Fortify Application Api
      *
@@ -81,7 +85,17 @@ public class BlackDuckFortifyJobConfig implements JobExecutionListener {
      */
     @Bean
     public FortifyApplicationApi getFortifyApplicationApi() {
-        return new FortifyApplicationApi();
+        return new FortifyApplicationApi(getFortifyAttributeApi(), attributeConstants);
+    }
+
+    /**
+     * Created the bean for Fortify Attribute Api
+     *
+     * @return
+     */
+    @Bean
+    public FortifyAttributeApi getFortifyAttributeApi() {
+        return new FortifyAttributeApi();
     }
 
     /**
@@ -131,7 +145,7 @@ public class BlackDuckFortifyJobConfig implements JobExecutionListener {
      */
     @Bean
     public MappingParser getMappingParser() {
-        return new MappingParser(getFortifyApplicationApi(), getFortifyAuthenticationApi(), getFortifyUserApi());
+        return new MappingParser(getFortifyApplicationApi(), getFortifyAuthenticationApi(), getFortifyUserApi(), attributeConstants);
     }
 
     /**
@@ -141,7 +155,7 @@ public class BlackDuckFortifyJobConfig implements JobExecutionListener {
      */
     @Bean
     public Initializer getMappingParserTask() {
-        return new Initializer(getMappingParser(), getHubServices());
+        return new Initializer(getMappingParser(), getHubServices(), getFortifyAuthenticationApi(), getFortifyOpenSourceScansApi());
     }
 
     /**
@@ -200,6 +214,7 @@ public class BlackDuckFortifyJobConfig implements JobExecutionListener {
      */
     @Override
     public void afterJob(JobExecution jobExecution) {
+        TransformViewsUtil.resetCweNamesMap();
         logger.info("Job completed at::" + new Date());
     }
 

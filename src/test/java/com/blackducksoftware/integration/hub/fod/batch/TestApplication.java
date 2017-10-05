@@ -31,10 +31,11 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import com.blackducksoftware.integration.hub.fod.utils.AttributeConstants;
 import com.blackducksoftware.integration.hub.fod.utils.PropertyConstants;
 
 @Configuration
-@ComponentScan(basePackageClasses = PropertyConstants.class)
+@ComponentScan(basePackageClasses = { PropertyConstants.class, AttributeConstants.class })
 @EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class })
 public class TestApplication {
     public static void main(String args[]) {

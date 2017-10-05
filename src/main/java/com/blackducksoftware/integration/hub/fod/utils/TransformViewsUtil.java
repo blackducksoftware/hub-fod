@@ -25,16 +25,22 @@
 package com.blackducksoftware.integration.hub.fod.utils;
 
 import java.lang.reflect.Type;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.Provider;
 import org.modelmapper.TypeToken;
 
+import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedMatchedFilesView;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedOriginView;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedVulnerabilityWithRemediationView;
+import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.model.view.MatchedFilesView;
 import com.blackducksoftware.integration.hub.model.view.VulnerabilityView;
 import com.blackducksoftware.integration.hub.model.view.components.LinkView;
@@ -47,6 +53,17 @@ import com.blackducksoftware.integration.hub.model.view.components.OriginView;
  *
  */
 public final class TransformViewsUtil {
+
+    private final static String CWE_API_URL = "api/cwes/";
+
+    private static Map<String, String> cweNamesMap = new HashMap<>();
+
+    /**
+     * Reset the Cwe names map for each job call
+     */
+    public static void resetCweNamesMap() {
+        cweNamesMap = new HashMap<>();
+    }
 
     /**
      * It will convert Matched Files view to Transformed Matched File View
@@ -112,32 +129,78 @@ public final class TransformViewsUtil {
      * @param componentVersionLink
      * @return
      */
-    public static List<TransformedVulnerabilityWithRemediationView> transformVulnerabilityRemediationView(final List<VulnerabilityView> vulnerabilityViews) {
+    public static List<TransformedVulnerabilityWithRemediationView> transformVulnerabilityRemediationView(final List<VulnerabilityView> vulnerabilityViews,
+            final HubServices hubServices) throws IntegrationException, DateTimeParseException {
         List<TransformedVulnerabilityWithRemediationView> transformedVulnerabilityWithRemediationViews = new ArrayList<>();
-        /*
-         * List<VulnerabilityWithRemediationView> vulnerabilityWithRemediationViews =
-         * groupByVulnerabilityComponents.get(componentVersionLink);
-         */
-        if (vulnerabilityViews != null) {
-            vulnerabilityViews.forEach(vulnerabilityView -> {
-                /*
-                 * VulnerabilityWithRemediationView vulnerabilityWithRemediationView =
-                 * VulnerabilityUtil.getVulnerabilityRemediationView(
-                 * vulnerabilityWithRemediationViews, vulnerabilityView.vulnerabilityName);
-                 */
-                if ("NVD".equalsIgnoreCase(vulnerabilityView.source)) {
-                    TransformedVulnerabilityWithRemediationView transformedVulnerabilityWithRemediationView = new TransformedVulnerabilityWithRemediationView(
-                            vulnerabilityView.vulnerabilityName, vulnerabilityView.cweId, "", vulnerabilityView.description,
-                            vulnerabilityView.baseScore, vulnerabilityView.exploitabilitySubscore, vulnerabilityView.impactSubscore,
-                            vulnerabilityView.source, vulnerabilityView.severity, vulnerabilityView.accessVector,
-                            vulnerabilityView.accessComplexity, vulnerabilityView.authentication, vulnerabilityView.confidentialityImpact,
-                            vulnerabilityView.integrityImpact, vulnerabilityView.availabilityImpact,
-                            vulnerabilityView.meta.href.replaceAll(PropertyConstants.getHubServerUrl(), ""),
-                            "http://web.nvd.nist.gov/view/vuln/detail?vulnId=" + vulnerabilityView.vulnerabilityName);
-                    transformedVulnerabilityWithRemediationViews.add(transformedVulnerabilityWithRemediationView);
-                }
-            });
+        String cweId = null;
+        for (VulnerabilityView vulnerabilityView : vulnerabilityViews) {
+
+            if ("NVD".equalsIgnoreCase(vulnerabilityView.source)) {
+                cweId = vulnerabilityView.cweId;
+
+                TransformedVulnerabilityWithRemediationView transformedVulnerabilityWithRemediationView = new TransformedVulnerabilityWithRemediationView(
+                        vulnerabilityView.vulnerabilityName, cweId, getCWENames(cweId, hubServices), vulnerabilityView.description,
+                        DateUtil.getDateTime(vulnerabilityView.vulnerabilityPublishedDate), DateUtil.getDateTime(vulnerabilityView.vulnerabilityUpdatedDate),
+                        vulnerabilityView.baseScore, vulnerabilityView.exploitabilitySubscore, vulnerabilityView.impactSubscore, vulnerabilityView.source,
+                        vulnerabilityView.severity, vulnerabilityView.accessVector, vulnerabilityView.accessComplexity, vulnerabilityView.authentication,
+                        vulnerabilityView.confidentialityImpact, vulnerabilityView.integrityImpact, vulnerabilityView.availabilityImpact,
+                        vulnerabilityView.meta.href.replaceAll(PropertyConstants.getHubServerUrl(), ""),
+                        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=" + vulnerabilityView.vulnerabilityName);
+                transformedVulnerabilityWithRemediationViews.add(transformedVulnerabilityWithRemediationView);
+            }
         }
         return transformedVulnerabilityWithRemediationViews;
+    }
+
+    /**
+     * Get CWE names for the given CWE id. The CWE id can be comma separated.
+     *
+     * @param cweId
+     * @param hubServices
+     * @return
+     * @throws IntegrationException
+     */
+    private static String getCWENames(String cweId, final HubServices hubServices) throws IntegrationException {
+        String cweName = null;
+        String trimmedCweId = null;
+        StringBuffer cweNames = new StringBuffer();
+        if (!StringUtils.isEmpty(cweId)) {
+            String[] cweIds = cweId.split(",");
+            for (int i = 0; i < cweIds.length; i++) {
+                trimmedCweId = cweIds[i].trim();
+
+                if (cweNamesMap.containsKey(trimmedCweId)) {
+                    synchronized (cweNamesMap) {
+                        cweName = cweNamesMap.get(trimmedCweId);
+                    }
+                } else {
+                    cweName = getCWEName(trimmedCweId, hubServices);
+                    synchronized (cweNamesMap) {
+                        cweNamesMap.put(trimmedCweId, cweName);
+                    }
+                }
+
+                if (i == 0)
+                    cweNames.append(cweName);
+                else
+                    cweNames.append(", " + cweName);
+            }
+        }
+        return cweNames.toString();
+    }
+
+    /**
+     * Get the CWE name for the given CWE id
+     *
+     * @param cweId
+     * @param hubServices
+     * @return
+     * @throws IntegrationException
+     */
+    private static String getCWEName(String cweId, final HubServices hubServices) throws IntegrationException {
+        if (!StringUtils.isEmpty(cweId))
+            return hubServices.getCweVulnerabilityView(PropertyConstants.getHubServerUrl() + CWE_API_URL + cweId).getName();
+        else
+            return "";
     }
 }

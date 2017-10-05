@@ -39,8 +39,6 @@ import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.fod.batch.model.BlackDuckFortifyMapper;
 import com.blackducksoftware.integration.hub.fod.batch.model.BlackDuckFortifyMapperGroup;
 import com.blackducksoftware.integration.hub.fod.batch.model.HubProjectVersion;
-import com.blackducksoftware.integration.hub.fod.domain.FortifyApplication;
-import com.blackducksoftware.integration.hub.fod.domain.FortifyApplication.Attribute;
 import com.blackducksoftware.integration.hub.fod.domain.FortifyApplicationRelease;
 import com.blackducksoftware.integration.hub.fod.service.FortifyApplicationApi;
 import com.blackducksoftware.integration.hub.fod.service.FortifyAuthenticationApi;
@@ -65,11 +63,14 @@ public final class MappingParser {
 
     private final FortifyUserApi fortifyUserApi;
 
+    private final AttributeConstants attributeConstants;
+
     public MappingParser(final FortifyApplicationApi fortifyApplicationApi, final FortifyAuthenticationApi fortifyAuthenticationApi,
-            final FortifyUserApi fortifyUserApi) {
+            final FortifyUserApi fortifyUserApi, final AttributeConstants attributeConstants) {
         this.fortifyApplicationApi = fortifyApplicationApi;
         this.fortifyAuthenticationApi = fortifyAuthenticationApi;
         this.fortifyUserApi = fortifyUserApi;
+        this.attributeConstants = attributeConstants;
     }
 
     /**
@@ -189,10 +190,9 @@ public final class MappingParser {
             // Get the user Id
             long userId = fortifyUserApi.getFortifyUsers(accessToken);
 
-            FortifyApplication fortifyApplicationRequest = new FortifyApplication(null, fortifyApplicationName, "", "Web_Thick_Client",
-                    fortifyApplicationReleaseName, "", "", userId, new ArrayList<Attribute>(), "High", "Production");
             // Create the fortify application release if it is unavailable
-            fortifyApplicationId = fortifyApplicationApi.createFortifyApplicationRelease(accessToken, fortifyApplicationRequest);
+            fortifyApplicationId = fortifyApplicationApi.createFortifyApplicationRelease(accessToken, fortifyApplicationName, fortifyApplicationReleaseName,
+                    userId);
         }
 
         return fortifyApplicationId;
@@ -218,7 +218,7 @@ public final class MappingParser {
         // Create the release if the release is unavailable
         if (releaseId == 0) {
             FortifyApplicationRelease fortifyApplicationRelease = new FortifyApplicationRelease(null, fortifyApplicationReleaseName, "",
-                    fortifyApplicationId, false, null, "Production");
+                    fortifyApplicationId, false, null, attributeConstants.getProperty("SDLC Status"));
             releaseId = fortifyApplicationApi.createFortifyApplicationRelease(accessToken, fortifyApplicationRelease);
             logger.info("created releaseId::" + releaseId);
         }
