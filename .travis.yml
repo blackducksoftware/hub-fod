@@ -7,7 +7,7 @@ script:
   - ./gradlew clean build -x test
 
 after_success:
-  - ./gradlew test jacocoTestReport coveralls
+  - ./gradlew jacocoTestReport coveralls
   - curl https://copilot.blackducksoftware.com/scripts/init/gradle -o bds_init.gradle
   - ./gradlew --init-script bds_init.gradle buildBom -DbdsPluginVersion=5.0.1
   - bash <(curl -s https://copilot.blackducksoftware.com/bash/travis) ./build/blackduck/*_bdio.jsonld
