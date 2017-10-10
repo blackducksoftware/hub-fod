@@ -5,7 +5,9 @@ install: true
 script:
 - ./gradlew clean build -x test
 after_success:
-- FOD_USERNAME=$FOD_USERNAME FOD_PASSWORD=$FOD_PASSWORD HUB_USERNAME=$HUB_USERNAME HUB_PASSWORD=$HUB_PASSWORD ./gradlew test jacocoTestReport coveralls --debug
+- echo $FOD_USERNAME
+- echo $HUB_USERNAME
+- FOD_USERNAME=$FOD_USERNAME FOD_PASSWORD=$FOD_PASSWORD HUB_USERNAME=$HUB_USERNAME HUB_PASSWORD=$HUB_PASSWORD ./gradlew test jacocoTestReport coveralls
 - curl https://copilot.blackducksoftware.com/scripts/init/gradle -o bds_init.gradle
 - ./gradlew --init-script bds_init.gradle buildBom -DbdsPluginVersion=5.0.1
 - bash <(curl -s https://copilot.blackducksoftware.com/bash/travis) ./build/blackduck/*_bdio.jsonld
