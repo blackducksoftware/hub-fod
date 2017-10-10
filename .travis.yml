@@ -1,20 +1,11 @@
 language: java
 jdk:
-  - oraclejdk8
+- oraclejdk8
 install: true
-
-env:
-  global:
-    - secure: "M+hiJD/JFULqm8Lb/sjCm8ZE6jSHPq60AvJZV0W+WJO+pUU5zX0M3E/C1UJHZt+rOe2P0EvYUaFsE2i5Kzd9wbRbIe+bR3FLivsySaup9B+ZOKgNYZ46OF1YqCflSDGx1yGbABLaHi3RCDBL12t3QAjuHzdT2ltwg318bjXLxFeqjm6Fce7FzsjxMMQxwc0p5r3/SMXJMUhXPbVoIq45fnUrE24PlKiB34g/FPjCO4wQ3wVry9lfpj3RamaaXlBCfUY8u8K86jS68xvxZKV8POf9IXjWsCd8TrbeMYhDftAy24xZIldDAVJe5vcclQrcYPoRYR1M1FPSHUsIj7b+ihML2lIqD1+7V2MLiMLVh7qLnox3RPw9o41KPzr0y4mY/8HtRxVPUVUO1Bzmtwlm4mXeiniG3wB4vG9KxOwzkcvYhQEhmgitZjj+fO98hxfS+bxaSrM76qh3uGrxIZKuiJUJlfPzCbgsj5SA5zCp7IHgNmolWjXp2hBvkmZASQUXeE53oACroJMSc5TzfPqVoeCZs/BGc+V3jGN1asAx7GFWk6X7jELupZDL0DNRYmU0cupBch8vudPcXPN67ZaC/AaidnWVufb4JDtkKzM8sd5skFfvSo+6yw5vZXKsM1N5hTtZbbPOyMCa5EKYA2XG4c9yxiRmG4M8C1k8a+EpmlE="
-    - secure: "bFyGb8kEw9cnAOeiz9yK1yf1a941CzknGEX81a8T1CiaknweJJVNhRTwhBYYnnjR7xd2S1OR6+bCZM9+Z3Axa4NK1bOXSGtpRu76iQT8wdoxBt2Lj7mfqpj8DgcrmXtPBjh6MIweoQZ0A6S1uju/nfXahRGspoGo+m5Q1Q9w0Kgoi7IE18uWA67PyoMyqmBZ70sgmj6wqRwPW8e2qckXuG5KIP1WuyS0d29/pq1a46bm5P8xlIiArV9/7t3WrNcRMfaBmZOZlLM4cyxYLxnrirDNcWcxiPUe8prIi4r2E0ciZa6vVdTBfsfFttI5iMnjqUIVfzJ9vdTXCVN2jJAMQ9z0O+8/sEWV8fqoEu79T9ZmMv4llL1xAGrW9tJ6zoLnVlROdpPlBnSV/LSYqMjCQc9+6EIsY/FiFH51tTJvSXs8mmBLdLSMAK6dBuIfw8VDfsOFnAI4pKKcK2PBsddQkUXKTw+fm0ly2FOOue8sqL6BvnVs7SQ2hXuCzf5yZSPpA0mem5BLcZkdlPSbH1Wud+EBescIkr36j5fpJ6LCio18F3d/q+o8XBEld8v/zPdpEl8FOeA/n0rEgI2h4UEYjeKn1GlqzrJ0Asyw3KZFaeDIYZ0P8GvP1L1cJIh/OIPazDk+uv8AvgyPa9F59s9kugtNEEclQ+G2FeiRBbFJtjw="    
-    - secure: "K+S/rLeAAA76tFIRIcVLLO32w/yXiiDL6o9X5nfMRyHPll/QZh4oQFWJ4typ/+NBeqTdXzGdz1rBco1yNQnJtyezja7jApIE/vTgEDSp5siZXrNMkwnzL6LfbN0u37LWYs8d7nl+Xy5cSwBUvrTvZ9ZtRbjbLyqjJhPN12kcRChL/d1gNm030LB7voHozFOOpHPfppEZTrdpSpe7d3LI27Jb4dGezabBGx6VDBJHIp6sf7c30gQ2Q5XkhGC3BgJDilZNEsgCIH7uw/xMzneX2la2FaLIXN/8vz4MqSn0E5edkSGduC+vb50Ya5KbXHIhx+sY9ELINykNYW1MBdM4XlN050azJVEvbHqrKJwT1RprnODoQxWSoFAlZXvgrb1rYZ39KJb3wYCneLGDpLW58CfZRu08jFvyueXQG3t4WpAXDRdkPDvn6/VoaUcr2pLR14tZbSXB32soATX/ioQCIbx32Dh86K3M2TS6BeeoaNzoGdiImiFnQLNnCNwD6C6MbiOYo36V1jX4tk4gh9Zx1AOENmEra4Rz8AL/Rt/xYq5L5J53Abn/zv+elRfTxl5Gou9VMMIV0TMA3AjySY+99Yz7PgfL/YUO2MeswCaLd12DHEdDccD9RrQ3hb4fJ+x2PbUgZbq7Cz3yFbeqn7HL6u6f4usxBpBng22OyaIEKLY="
-    - secure: "Jx2ClIbqXSqQappZGxR68UeOkiuRn+KIjtYOSQ8+WJ1rQPCABSgHKIeQX2w6I9qsem7IdwPrRQcLGUycEzqbquXuUVNIJl0LGH4DGNX7eqYaHSFzLJH7lYlA94md3yVzrvTtPmjLQWe+1OXGQjKFLQaE4BwJeNMMURRVmX3HLIv1S1Zvu3Zht+43MWAPORAOfbjhMrawTnpM1vaS3G0MQDjW4OVmOvsm6BgSS95HtTrogUfH/xCxrLFxrLhgRUKh7h0NFCZyFqsn8G4Q3njpnJNp3AAMo6ziLZ58H1SbOzwKtgwllAOKYJakljehU8lSr/HABYnXWCrK/giJQv99mkfB8yEpB+UZzAcg3aPMQXvgSF7vSMZwQDgVsYvlhylgTKNcsvRa5892f8UPdbTyyrZQXiUvdOQ+xJ1UHI9YO/XAnK1GUAnFPEA23Zgmiz9mcq9PHrKdJatC+tukCU3wrFY3+IieOakyiM4XtQWYGU88mIyqbwvzC0ody/moSvW7vMULWWiktb25su8GNDPxg7DmjCvztttgOx0T+qT4+pHf4MuzEp4z2F0pGv4z0nSFuRrCqRGBRFlo2+ibgDrl6ACO2sGbog3WyOaWSkMtMMVdVSHuAJipDoclFhk6v3//ysEf0FNnb8ulsrx0N5O6AcGwKQhV2C9QCBhsjgliUVc="
-    
 script:
-  - ./gradlew clean build -x test
-
+- ./gradlew clean build -x test
 after_success:
-  - $FOD_USERNAME $FOD_PASSWORD $HUB_USERNAME $HUB_PASSWORD ./gradlew test jacocoTestReport coveralls
-  - curl https://copilot.blackducksoftware.com/scripts/init/gradle -o bds_init.gradle
-  - ./gradlew --init-script bds_init.gradle buildBom -DbdsPluginVersion=5.0.1
-  - bash <(curl -s https://copilot.blackducksoftware.com/bash/travis) ./build/blackduck/*_bdio.jsonld
+- FOD_USERNAME=$FOD_USERNAME FOD_PASSWORD=$FOD_PASSWORD HUB_USERNAME=$HUB_USERNAME HUB_PASSWORD=$HUB_PASSWORD ./gradlew test jacocoTestReport coveralls
+- curl https://copilot.blackducksoftware.com/scripts/init/gradle -o bds_init.gradle
+- ./gradlew --init-script bds_init.gradle buildBom -DbdsPluginVersion=5.0.1
+- bash <(curl -s https://copilot.blackducksoftware.com/bash/travis) ./build/blackduck/*_bdio.jsonld
