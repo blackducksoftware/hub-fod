@@ -108,6 +108,7 @@ public class FortifyOpenSourceScansApiTest extends TestCase {
 
             String sessionId = fortifyOpenSourceScansApi.getImportSessionId(accessToken,
                     new FortifyImportSession(releaseId, vulnJsonLength, "BlackDuck"));
+            Thread.sleep(30000);
             fortifyOpenSourceScansApi.uploadVulnerabilities(accessToken, sessionId, fortifyUploadBytes, vulnJsonLength);
         } catch (Exception e) {
             e.printStackTrace();
