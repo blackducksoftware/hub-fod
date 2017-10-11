@@ -38,13 +38,10 @@ import org.modelmapper.TypeToken;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedMatchedFilesView;
-import com.blackducksoftware.integration.hub.fod.batch.model.TransformedOriginView;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedVulnerabilityWithRemediationView;
 import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.model.view.MatchedFilesView;
 import com.blackducksoftware.integration.hub.model.view.VulnerabilityView;
-import com.blackducksoftware.integration.hub.model.view.components.LinkView;
-import com.blackducksoftware.integration.hub.model.view.components.OriginView;
 
 /**
  * This class is used to transform the view from one to another
@@ -87,38 +84,6 @@ public final class TransformViewsUtil {
         }.getType();
 
         return modelMapper.map(matchedFilesView, transformedMatchedFilesViewType);
-    }
-
-    /**
-     * It will convert Origin view to Transformed Origin View
-     *
-     * @param originViews
-     * @return
-     */
-    public static List<TransformedOriginView> transformOriginView(final List<OriginView> originViews) {
-
-        ModelMapper modelMapper = new ModelMapper();
-        modelMapper.createTypeMap(OriginView.class, TransformedOriginView.class).setProvider(
-                new Provider<TransformedOriginView>() {
-                    @Override
-                    public TransformedOriginView get(ProvisionRequest<TransformedOriginView> request) {
-                        OriginView originView = OriginView.class.cast(request.getSource());
-                        String componentVersionOriginUrl = null;
-                        for (LinkView link : originView.meta.links) {
-                            if ("origin".equalsIgnoreCase(link.rel)) {
-                                componentVersionOriginUrl = link.href.replaceAll(PropertyConstants.getHubServerUrl(), "");
-                                break;
-                            }
-                        }
-                        return new TransformedOriginView(originView.name, originView.externalNamespace,
-                                originView.externalId, originView.externalNamespaceDistribution, componentVersionOriginUrl);
-                    }
-                });
-
-        Type transformedOriginViewType = new TypeToken<List<TransformedOriginView>>() {
-        }.getType();
-
-        return modelMapper.map(originViews, transformedOriginViewType);
     }
 
     /**
