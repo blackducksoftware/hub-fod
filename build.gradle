@@ -131,5 +131,8 @@ distributions {
 }
 
 jacocoTestReport {
-    reports { xml.enabled = true }
+    reports { 
+    	xml.enabled = true 
+    	html.enabled = true
+    }
 }
