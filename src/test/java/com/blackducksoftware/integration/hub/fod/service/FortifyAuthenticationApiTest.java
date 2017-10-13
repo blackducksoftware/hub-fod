@@ -53,7 +53,6 @@ public class FortifyAuthenticationApiTest extends TestCase {
     @Test
     public void getAuthenticationToken() throws Exception {
         String accessToken = blackDuckFortifyJobConfig.getFortifyAuthenticationApi().getAuthenticatedToken();
-        System.out.println("accessToken::" + accessToken);
         assertNotNull(accessToken);
     }
 
