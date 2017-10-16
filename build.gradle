@@ -23,7 +23,8 @@ plugins {
 }
 
 allprojects { 
-	apply plugin: "com.jfrog.artifactory"
+	apply plugin: 'maven-publish'
+        apply plugin: "com.jfrog.artifactory"
 }
 
 sourceCompatibility = 1.8
@@ -45,6 +46,17 @@ startScripts {
     doLast {
         windowsScript.text = windowsScript.text.replace("%CMD_LINE_ARGS%", "--spring.config.location=../config/")
     }
+}
+
+ext {
+        springVersion = '4.3.5.RELEASE'
+        retrofit2Version = '2.1.0'
+        okhttp3Version = '3.3.1'
+        powerMockitoVersion = '1.6.6'
+        uploadDefs = new File("${rootDir}/uploadArtifacts.gradle")
+
+        buildName = 'hub-fod'
+        uploadRepoKey = System.properties['uploadRepoKey'] ?: 'bds-alliance-snapshot'
 }
 
 repositories {
@@ -128,6 +140,16 @@ distributions {
             from('src/main/resources/hub-fod-application.log') {into 'log/'}
         }
     }
+}
+
+publishing{
+        publications{
+                maven(MavenPublication){
+                        from components.java
+                        artifact distZip
+                        artifact distTar
+                }
+        }
 }
 
 jacocoTestReport {
