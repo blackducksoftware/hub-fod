@@ -50,6 +50,7 @@ import com.blackducksoftware.integration.hub.fod.batch.model.FortifyUploadReques
 import com.blackducksoftware.integration.hub.fod.batch.model.HubProjectVersion;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedMatchedFilesView;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedVulnerabilityWithRemediationView;
+import com.blackducksoftware.integration.hub.fod.batch.model.VulnerabilityView;
 import com.blackducksoftware.integration.hub.fod.domain.FortifyImportSession;
 import com.blackducksoftware.integration.hub.fod.service.FortifyAuthenticationApi;
 import com.blackducksoftware.integration.hub.fod.service.FortifyOpenSourceScansApi;
@@ -59,7 +60,6 @@ import com.blackducksoftware.integration.hub.fod.utils.TransformViewsUtil;
 import com.blackducksoftware.integration.hub.model.view.ComponentVersionView;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomComponentView;
-import com.blackducksoftware.integration.hub.model.view.VulnerabilityView;
 import com.blackducksoftware.integration.hub.model.view.components.OriginView;
 import com.google.gson.Gson;
 

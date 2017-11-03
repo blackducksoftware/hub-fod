@@ -38,6 +38,7 @@ import com.blackducksoftware.integration.hub.api.project.ProjectRequestService;
 import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionRequestService;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.fod.batch.model.CweVulnerabilityView;
+import com.blackducksoftware.integration.hub.fod.batch.model.VulnerabilityView;
 import com.blackducksoftware.integration.hub.model.view.CodeLocationView;
 import com.blackducksoftware.integration.hub.model.view.ComponentVersionView;
 import com.blackducksoftware.integration.hub.model.view.MatchedFilesView;
@@ -45,7 +46,6 @@ import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.ProjectView;
 import com.blackducksoftware.integration.hub.model.view.RiskProfileView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomComponentView;
-import com.blackducksoftware.integration.hub.model.view.VulnerabilityView;
 import com.blackducksoftware.integration.hub.model.view.VulnerableComponentView;
 import com.blackducksoftware.integration.hub.model.view.components.LinkView;
 import com.blackducksoftware.integration.hub.model.view.components.OriginView;
@@ -242,7 +242,7 @@ public final class HubServices {
      */
     public List<VersionBomComponentView> getAggregatedComponentLists(final ProjectVersionView projectVersionItem)
             throws IllegalArgumentException, IntegrationException {
-        logger.info("Getting Hub Components Info");
+        logger.info("Getting Aggregated Hub Components");
         if (projectVersionItem != null) {
             final String componentsUrl = getProjectVersionComponentsUrl(projectVersionItem);
             final HubResponseService hubResponseService = hubServicesFactory.createHubResponseService();
@@ -329,7 +329,7 @@ public final class HubServices {
         logger.debug("Getting Hub Vulnerability Bom info");
         final HubResponseService hubResponseService = hubServicesFactory.createHubResponseService();
         HubPagedRequest hubPagedRequest = hubResponseService.getHubRequestFactory().createPagedRequest(500, vulnerabililtyComponentVersionUrl);
-        return hubResponseService.getAllItems(hubPagedRequest, VulnerabilityView.class);
+        return hubResponseService.getAllItems(hubPagedRequest, VulnerabilityView.class, "application/vnd.blackducksoftware.vulnerability-2+json");
     }
 
     /**
@@ -340,7 +340,7 @@ public final class HubServices {
      * @throws IntegrationException
      */
     public List<CodeLocationView> getScanDates(final ProjectVersionView projectVersionItem) throws IntegrationException {
-        logger.info("Getting Hub project version Scan dates");
+        logger.debug("Getting Hub project version Scan dates");
         final CodeLocationRequestService codeLocationRequestService = hubServicesFactory.createCodeLocationRequestService();
         return codeLocationRequestService.getAllCodeLocationsForProjectVersion(projectVersionItem);
     }
@@ -353,7 +353,7 @@ public final class HubServices {
      * @throws IntegrationException
      */
     public String getComponentVersionOriginUrl(final OriginView originView) throws IntegrationException {
-        logger.info("Getting Component Version Origin View");
+        logger.debug("Getting Component Version Origin View");
         final MetaService metaService = hubServicesFactory.createMetaService();
         return metaService.getFirstLink(originView, "origin");
     }
@@ -366,10 +366,31 @@ public final class HubServices {
      * @throws IntegrationException
      */
     public ComponentVersionView getComponentVersionOriginView(final String componentVersionOriginUrl) throws IntegrationException {
-        logger.debug("Getting Hub Vulnerability Bom info");
+        logger.debug("Getting Component Version Origin Bom info for::" + componentVersionOriginUrl);
         final HubResponseService hubResponseService = hubServicesFactory.createHubResponseService();
         HubRequest hubRequest = hubResponseService.getHubRequestFactory().createRequest(componentVersionOriginUrl);
         return hubResponseService.getItem(hubRequest, ComponentVersionView.class);
+    }
+
+    /**
+     * Get Cwe Urls for the vulnerability
+     *
+     * @param vulnerabilityView
+     * @return
+     * @throws IntegrationException
+     */
+    public List<String> getcweVulnerabilityUrls(final VulnerabilityView vulnerabilityView) throws IntegrationException {
+        logger.debug("Getting Cwe Vulnerability Urls");
+        final MetaService metaService = hubServicesFactory.createMetaService();
+        try {
+            return metaService.getLinks(vulnerabilityView, "cwes");
+        } catch (IntegrationException e) {
+            if (e.getMessage().contains("Could not find the link 'cwes'")) {
+                return new ArrayList<>();
+            } else {
+                throw new IntegrationException(e);
+            }
+        }
     }
 
     /**
