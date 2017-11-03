@@ -43,12 +43,12 @@ import com.blackducksoftware.integration.hub.fod.batch.model.ComponentVersionOri
 import com.blackducksoftware.integration.hub.fod.batch.model.FortifyUploadRequest;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedMatchedFilesView;
 import com.blackducksoftware.integration.hub.fod.batch.model.TransformedVulnerabilityWithRemediationView;
+import com.blackducksoftware.integration.hub.fod.batch.model.VulnerabilityView;
 import com.blackducksoftware.integration.hub.fod.service.HubServices;
 import com.blackducksoftware.integration.hub.model.view.ComponentVersionView;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.ProjectView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomComponentView;
-import com.blackducksoftware.integration.hub.model.view.VulnerabilityView;
 import com.blackducksoftware.integration.hub.model.view.VulnerableComponentView;
 import com.blackducksoftware.integration.hub.model.view.components.OriginView;
 import com.google.gson.Gson;
@@ -75,8 +75,8 @@ public class HubServicesTest extends TestCase {
                 .createMapping(PropertyConstants.getMappingJsonPath());
         PROJECT_NAME = blackDuckFortifyMappers.get(0).getHubProjectVersion().get(0).getHubProject();
         VERSION_NAME = blackDuckFortifyMappers.get(0).getHubProjectVersion().get(0).getHubProjectVersion();
-        PROJECT_NAME = "C Demo Project";
-        VERSION_NAME = "3.4";
+        // PROJECT_NAME = "struts2-bom";
+        // VERSION_NAME = "2.5.3";
         hubServices = blackDuckFortifyJobConfig.getHubServices();
     }
 
@@ -234,7 +234,7 @@ public class HubServicesTest extends TestCase {
         // Java object to JSON, and assign to a String
         Gson gson = new Gson();
         String jsonInString = gson.toJson(fortifyUploadRequest);
-        // System.out.println("fortifyUploadRequest::" + jsonInString);
+        System.out.println("fortifyUploadRequest::" + jsonInString);
         assertNotNull(jsonInString);
     }
 }
