@@ -21,24 +21,37 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.blackducksoftware.integration.hub.fod;
+package com.blackducksoftware.integration.hub.fod.domain;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import java.io.Serializable;
+import java.util.List;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
- * The Spring Boot application
- *
+ * This class is used to store the fortify application releases api request and response
+ * 
  * @author smanikantan
  *
  */
-@SpringBootApplication
-@EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class })
-public class Application {
+public final class FortifyApplicationReleases implements Serializable {
 
-    public static void main(String args[]) {
-        SpringApplication.run(Application.class, args);
+    private static final long serialVersionUID = 1L;
+
+    @SerializedName("items")
+    private final List<FortifyApplicationRelease> fortifyApplicationReleases;
+
+    public FortifyApplicationReleases(List<FortifyApplicationRelease> fortifyApplicationReleases) {
+        this.fortifyApplicationReleases = fortifyApplicationReleases;
     }
+
+    public List<FortifyApplicationRelease> getFortifyApplicationReleases() {
+        return fortifyApplicationReleases;
+    }
+
+    @Override
+    public String toString() {
+        return "FortifyApplicationReleases [fortifyApplicationReleases=" + fortifyApplicationReleases + "]";
+    }
+
 }

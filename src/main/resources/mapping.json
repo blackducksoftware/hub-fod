@@ -1,0 +1,14 @@
+[
+    {
+      "hubProject": "C Demo Project",
+      "hubProjectVersion": "3.4",
+      "fortifyApplication": "Hub-Fortify-Test",
+      "fortifyApplicationVersion": "1.0"
+    },
+    {
+      "hubProject": "duckyhub",
+      "hubProjectVersion": "3.0",
+      "fortifyApplication": "Duck Hub",
+      "fortifyApplicationVersion": "3.0"
+    }
+]
