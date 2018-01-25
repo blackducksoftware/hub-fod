@@ -1,3 +1,7 @@
+<p align="center">
+  <img width="25%" height="25%" src="https://www.blackducksoftware.com/sites/default/files/images/Logos/BD-S.png">
+</p>
+
 ## Overview ##
 Hub-FoD integration is a command line tool allowing the export of Hub Project Version component vulnerability information into a Fortify On Demand Application Release in the PDF format.
 
