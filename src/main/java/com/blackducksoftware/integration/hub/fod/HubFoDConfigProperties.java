@@ -27,305 +27,316 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-
 @Component
 @ConfigurationProperties
 public class HubFoDConfigProperties {
-	
-	@Value("${hub.url}")
-	private String hubURL;
-	
-	@Value("${hub.username}")
-	private String hubUser;
 
-	@Value("${hub.password}")
-	private String hubPassword;
+    @Value("${hub.url}")
+    private String hubURL;
 
-	@Value("${hub.project}")
-	private String hubProject;
+    @Value("${hub.username}")
+    private String hubUser;
 
-	@Value("${hub.project.version}")
-	private String hubProjectVersion;
-	
-	@Value("${proxy.host}")
-	private String proxyHost;
-	
-	@Value("${proxy.username}")
-	private String proxyUsername;
-	
-	@Value("${proxy.password}")
-	private String proxyPassword;
-	
-	@Value("${proxy.port}")
-	private String proxyPort;
-	
-	@Value("${proxy.ignore.hosts}")
-	private String ignoreProxyHosts;
-	
-	@Value("${hub.timeout}")
-	private String hubTimeout;
-	
-	@Value("${output.folder}")
-	private String outputFolder;
-	
-	@Value("${output.html.filename}")
-	private String outputHTMLFilename;
-	
-	@Value("${output.pdf.filename}")
-	private String outputPDFFilename;
-	
-	@Value("${fod.application.id}")
-	private String fodApplicationId;
-	
-	@Value("${fod.release.id}")
-	private String fodReleaseId;
-	
-	@Value("${fod.baseurl}")
-	private String fodBaseURL;	
+    @Value("${hub.password}")
+    private String hubPassword;
 
-	@Value("${fod.api.baseurl}")
-	private String fodAPIBaseURL;
-	
-	@Value("${fod.grant.type}")
-	private String fodGrantType;
-	
-	@Value("${fod.username}")
-	private String fodUsername;
-	
-	@Value("${fod.password}")
-	private String fodPassword;
-	
-	@Value("${fod.tenant.id}")
-	private String fodTenantId;
-	
-	@Value("${fod.client.id}")
-	private String fodClientId;
-	
-	@Value("${fod.client.secret}")
-	private String fodClientSecret;
-	
-	@Value("${hub.vulnerability.filters}")
-	private String[] hubVulnerabilityFilters;
-	
-	@Value("${report.notes}")
-	private String reportNotes;
+    @Value("${hub.project}")
+    private String hubProject;
 
+    @Value("${hub.project.version}")
+    private String hubProjectVersion;
 
-	public String getHubURL() {
-		return hubURL;
-	}
+    @Value("${proxy.host}")
+    private String proxyHost;
 
-	public void setHubURL(String hubURL) {
-		this.hubURL = hubURL;
-	}
+    @Value("${proxy.username}")
+    private String proxyUsername;
 
-	public String getHubUser() {
-		return hubUser;
-	}
+    @Value("${proxy.password}")
+    private String proxyPassword;
 
-	public void setHubUser(String hubUser) {
-		this.hubUser = hubUser;
-	}
+    @Value("${proxy.port}")
+    private String proxyPort;
 
-	public String getHubPassword() {
-		return hubPassword;
-	}
+    @Value("${proxy.Ntlm.Domain}")
+    private String ntlmDomain;
 
-	public void setHubPassword(String hubPassword) {
-		this.hubPassword = hubPassword;
-	}
+    @Value("${proxy.Ntlm.Workstation}")
+    private String ntlmWorkstation;
 
-	public String getHubProject() {
-		return hubProject;
-	}
+    @Value("${proxy.ignore.hosts}")
+    private String ignoreProxyHosts;
 
-	public void setHubProject(String hubProject) {
-		this.hubProject = hubProject;
-	}
+    @Value("${hub.timeout}")
+    private String hubTimeout;
 
-	public String getHubProjectVersion() {
-		return hubProjectVersion;
-	}
+    @Value("${output.folder}")
+    private String outputFolder;
 
-	public void setHubProjectVersion(String hubVersion) {
-		this.hubProjectVersion = hubVersion;
-	}
+    @Value("${output.html.filename}")
+    private String outputHTMLFilename;
 
+    @Value("${output.pdf.filename}")
+    private String outputPDFFilename;
 
+    @Value("${fod.application.id}")
+    private String fodApplicationId;
 
-	public String getHubTimeout() {
-		return hubTimeout;
-	}
+    @Value("${fod.release.id}")
+    private String fodReleaseId;
 
-	public void setHubTimeout(String hubTimeout) {
-		this.hubTimeout = hubTimeout;
-	}
+    @Value("${fod.baseurl}")
+    private String fodBaseURL;
 
-	public String getOutputFolder() {
-		return outputFolder;
-	}
+    @Value("${fod.api.baseurl}")
+    private String fodAPIBaseURL;
 
-	public void setOutputFolder(String outputFolder) {
-		this.outputFolder = outputFolder;
-	}
+    @Value("${fod.grant.type}")
+    private String fodGrantType;
 
-	public String getOutputHTMLFilename() {
-		return outputHTMLFilename;
-	}
+    @Value("${fod.username}")
+    private String fodUsername;
 
-	public void setOutputHTMLFilename(String outputHTMLFilename) {
-		this.outputHTMLFilename = outputHTMLFilename;
-	}
+    @Value("${fod.password}")
+    private String fodPassword;
 
-	public String getOutputPDFFilename() {
-		return outputPDFFilename;
-	}
+    @Value("${fod.tenant.id}")
+    private String fodTenantId;
 
-	public void setOutputPDFFilename(String outputPDFFilename) {
-		this.outputPDFFilename = outputPDFFilename;
-	}
+    @Value("${fod.client.id}")
+    private String fodClientId;
 
-	public String getProxyHost() {
-		return proxyHost;
-	}
+    @Value("${fod.client.secret}")
+    private String fodClientSecret;
 
-	public void setProxyHost(String proxyHost) {
-		this.proxyHost = proxyHost;
-	}
+    @Value("${hub.vulnerability.filters}")
+    private String[] hubVulnerabilityFilters;
 
-	public String getProxyUsername() {
-		return proxyUsername;
-	}
+    @Value("${report.notes}")
+    private String reportNotes;
 
-	public void setProxyUsername(String proxyUsername) {
-		this.proxyUsername = proxyUsername;
-	}
+    public String getHubURL() {
+        return hubURL;
+    }
 
-	public String getProxyPassword() {
-		return proxyPassword;
-	}
+    public void setHubURL(String hubURL) {
+        this.hubURL = hubURL;
+    }
 
-	public void setProxyPassword(String proxyPassword) {
-		this.proxyPassword = proxyPassword;
-	}
+    public String getHubUser() {
+        return hubUser;
+    }
 
-	public String getProxyPort() {
-		return proxyPort;
-	}
+    public void setHubUser(String hubUser) {
+        this.hubUser = hubUser;
+    }
 
-	public void setProxyPort(String proxyPort) {
-		this.proxyPort = proxyPort;
-	}
-	
-	
-	public String getIgnoreProxyHosts() {
-		return ignoreProxyHosts;
-	}
+    public String getHubPassword() {
+        return hubPassword;
+    }
 
-	public void setIgnoreProxyHosts(String ignoreProxyHosts) {
-		this.ignoreProxyHosts = ignoreProxyHosts;
-	}
+    public void setHubPassword(String hubPassword) {
+        this.hubPassword = hubPassword;
+    }
 
-	
-	public String getFodBaseURL() {
-		return fodBaseURL;
-	}
+    public String getHubProject() {
+        return hubProject;
+    }
 
-	public void setFodBaseURL(String fodBaseURL) {
-		this.fodBaseURL = fodBaseURL;
-	}
+    public void setHubProject(String hubProject) {
+        this.hubProject = hubProject;
+    }
 
-	public String getFodAPIBaseURL() {
-		return fodAPIBaseURL;
-	}
+    public String getHubProjectVersion() {
+        return hubProjectVersion;
+    }
 
-	public void setFodAPIBaseURL(String baseAPIURL) {
-		this.fodAPIBaseURL = baseAPIURL;
-	}
-	
-	public String getFodApplicationId() {
-		return fodApplicationId;
-	}
+    public void setHubProjectVersion(String hubVersion) {
+        this.hubProjectVersion = hubVersion;
+    }
 
-	public void setFodApplicationId(String fodApplicationId) {
-		this.fodApplicationId = fodApplicationId;
-	}
+    public String getHubTimeout() {
+        return hubTimeout;
+    }
 
-	public String getFodReleaseId() {
-		return fodReleaseId;
-	}
+    public void setHubTimeout(String hubTimeout) {
+        this.hubTimeout = hubTimeout;
+    }
 
-	public void setFodReleaseId(String fodReleaseId) {
-		this.fodReleaseId = fodReleaseId;
-	}
+    public String getOutputFolder() {
+        return outputFolder;
+    }
 
-	public String getFodGrantType() {
-		return fodGrantType;
-	}
+    public void setOutputFolder(String outputFolder) {
+        this.outputFolder = outputFolder;
+    }
 
-	public void setFodGrantType(String fodGrantType) {
-		this.fodGrantType = fodGrantType;
-	}
+    public String getOutputHTMLFilename() {
+        return outputHTMLFilename;
+    }
 
-	public String getFodUsername() {
-		return fodUsername;
-	}
+    public void setOutputHTMLFilename(String outputHTMLFilename) {
+        this.outputHTMLFilename = outputHTMLFilename;
+    }
 
-	public void setFodUsername(String fodUsername) {
-		this.fodUsername = fodUsername;
-	}
+    public String getOutputPDFFilename() {
+        return outputPDFFilename;
+    }
 
-	public String getFodPassword() {
-		return fodPassword;
-	}
+    public void setOutputPDFFilename(String outputPDFFilename) {
+        this.outputPDFFilename = outputPDFFilename;
+    }
 
-	public void setFodPassword(String fodPassword) {
-		this.fodPassword = fodPassword;
-	}
+    public String getProxyHost() {
+        return proxyHost;
+    }
 
-	public String getFodTenantId() {
-		return fodTenantId;
-	}
+    public void setProxyHost(String proxyHost) {
+        this.proxyHost = proxyHost;
+    }
 
-	public void setFodTenantId(String fodTenantId) {
-		this.fodTenantId = fodTenantId;
-	}
+    public String getProxyUsername() {
+        return proxyUsername;
+    }
 
-	public String getFodClientId() {
-		return fodClientId;
-	}
+    public void setProxyUsername(String proxyUsername) {
+        this.proxyUsername = proxyUsername;
+    }
 
-	public void setFodClientId(String fodClientId) {
-		this.fodClientId = fodClientId;
-	}
+    public String getProxyPassword() {
+        return proxyPassword;
+    }
 
-	public String getFodClientSecret() {
-		return fodClientSecret;
-	}
+    public void setProxyPassword(String proxyPassword) {
+        this.proxyPassword = proxyPassword;
+    }
 
-	public void setFodClientSecret(String fodClientSecret) {
-		this.fodClientSecret = fodClientSecret;
-	}
+    public String getProxyPort() {
+        return proxyPort;
+    }
 
-	public String[] getHubVulnerabilityFilters() {
-		return hubVulnerabilityFilters;
-	}
+    public void setProxyPort(String proxyPort) {
+        this.proxyPort = proxyPort;
+    }
 
-	public void setHubVulnerabilityFilters(String[] hubVulnerabilityFilters) {
-		this.hubVulnerabilityFilters = hubVulnerabilityFilters;
-	}
+    public String getNtlmDomain() {
+        return ntlmDomain;
+    }
 
-	public String getReportNotes() {
-		return reportNotes;
-	}
+    public void setNtlmDomain(String ntlmDomain) {
+        this.ntlmDomain = ntlmDomain;
+    }
 
-	public void setReportNotes(String reportNotes) {
-		this.reportNotes = reportNotes;
-	}
-	
-	
+    public String getNtlmWorkstation() {
+        return ntlmWorkstation;
+    }
 
-	
-	
+    public void setNtlmWorkstation(String ntlmWorkstation) {
+        this.ntlmWorkstation = ntlmWorkstation;
+    }
+
+    public String getIgnoreProxyHosts() {
+        return ignoreProxyHosts;
+    }
+
+    public void setIgnoreProxyHosts(String ignoreProxyHosts) {
+        this.ignoreProxyHosts = ignoreProxyHosts;
+    }
+
+    public String getFodBaseURL() {
+        return fodBaseURL;
+    }
+
+    public void setFodBaseURL(String fodBaseURL) {
+        this.fodBaseURL = fodBaseURL;
+    }
+
+    public String getFodAPIBaseURL() {
+        return fodAPIBaseURL;
+    }
+
+    public void setFodAPIBaseURL(String baseAPIURL) {
+        this.fodAPIBaseURL = baseAPIURL;
+    }
+
+    public String getFodApplicationId() {
+        return fodApplicationId;
+    }
+
+    public void setFodApplicationId(String fodApplicationId) {
+        this.fodApplicationId = fodApplicationId;
+    }
+
+    public String getFodReleaseId() {
+        return fodReleaseId;
+    }
+
+    public void setFodReleaseId(String fodReleaseId) {
+        this.fodReleaseId = fodReleaseId;
+    }
+
+    public String getFodGrantType() {
+        return fodGrantType;
+    }
+
+    public void setFodGrantType(String fodGrantType) {
+        this.fodGrantType = fodGrantType;
+    }
+
+    public String getFodUsername() {
+        return fodUsername;
+    }
+
+    public void setFodUsername(String fodUsername) {
+        this.fodUsername = fodUsername;
+    }
+
+    public String getFodPassword() {
+        return fodPassword;
+    }
+
+    public void setFodPassword(String fodPassword) {
+        this.fodPassword = fodPassword;
+    }
+
+    public String getFodTenantId() {
+        return fodTenantId;
+    }
+
+    public void setFodTenantId(String fodTenantId) {
+        this.fodTenantId = fodTenantId;
+    }
+
+    public String getFodClientId() {
+        return fodClientId;
+    }
+
+    public void setFodClientId(String fodClientId) {
+        this.fodClientId = fodClientId;
+    }
+
+    public String getFodClientSecret() {
+        return fodClientSecret;
+    }
+
+    public void setFodClientSecret(String fodClientSecret) {
+        this.fodClientSecret = fodClientSecret;
+    }
+
+    public String[] getHubVulnerabilityFilters() {
+        return hubVulnerabilityFilters;
+    }
+
+    public void setHubVulnerabilityFilters(String[] hubVulnerabilityFilters) {
+        this.hubVulnerabilityFilters = hubVulnerabilityFilters;
+    }
+
+    public String getReportNotes() {
+        return reportNotes;
+    }
+
+    public void setReportNotes(String reportNotes) {
+        this.reportNotes = reportNotes;
+    }
 
 }

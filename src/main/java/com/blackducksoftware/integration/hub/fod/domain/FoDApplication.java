@@ -25,33 +25,28 @@ package com.blackducksoftware.integration.hub.fod.domain;
 
 import java.io.Serializable;
 
-public class FoDApplication implements Serializable {
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public final class FoDApplication implements Serializable {
 
-	private String applicationId;
-	
-	private String applicationName;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-	public String getApplicationId() {
-		return applicationId;
-	}
+    private final String applicationId;
 
-	public void setApplicationId(String applicationId) {
-		this.applicationId = applicationId;
-	}
+    private final String applicationName;
 
-	public String getApplicationName() {
-		return applicationName;
-	}
+    public FoDApplication(final String applicationId, final String applicationName) {
+        this.applicationId = applicationId;
+        this.applicationName = applicationName;
+    }
 
-	public void setApplicationName(String applicationName) {
-		this.applicationName = applicationName;
-	}
-	
-	
+    public String getApplicationId() {
+        return applicationId;
+    }
+
+    public String getApplicationName() {
+        return applicationName;
+    }
 
 }

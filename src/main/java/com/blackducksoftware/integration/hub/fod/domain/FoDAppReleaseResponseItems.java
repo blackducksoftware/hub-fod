@@ -26,29 +26,28 @@ package com.blackducksoftware.integration.hub.fod.domain;
 import java.io.Serializable;
 import java.util.List;
 
-public class FoDAppReleaseResponseItems implements Serializable{
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	
-	private int totalCount;
-	private List<FoDApplicationRelease> items;
-	
-	public int getTotalCount() {
-		return totalCount;
-	}
-	public void setTotalCount(int totalCount) {
-		this.totalCount = totalCount;
-	}
-	public List<FoDApplicationRelease> getItems() {
-		return items;
-	}
-	public void setItems(List<FoDApplicationRelease> items) {
-		this.items = items;
-	}
-	
-	
+public final class FoDAppReleaseResponseItems implements Serializable {
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
+    private final int totalCount;
+
+    private final List<FoDApplicationRelease> items;
+
+    public FoDAppReleaseResponseItems(final int totalCount, final List<FoDApplicationRelease> items) {
+        this.totalCount = totalCount;
+        this.items = items;
+    }
+
+    public int getTotalCount() {
+        return totalCount;
+    }
+
+    public List<FoDApplicationRelease> getItems() {
+        return items;
+    }
 
 }
