@@ -25,31 +25,31 @@ package com.blackducksoftware.integration.hub.fod.exception;
 
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 
-public class FoDConnectionException extends HubIntegrationException{
+public class FoDConnectionException extends HubIntegrationException {
 
-	    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    /**
+    * 
+    */
+    private static final long serialVersionUID = 1L;
 
-		public FoDConnectionException() {
-	        super();
-	    }
+    public FoDConnectionException() {
+        super();
+    }
 
-	    public FoDConnectionException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-	        super(message, cause, enableSuppression, writableStackTrace);
-	    }
+    public FoDConnectionException(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 
-	    public FoDConnectionException(String message, Throwable cause) {
-	        super(message, cause);
-	    }
+    public FoDConnectionException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
 
-	    public FoDConnectionException(String message) {
-	        super(message);
-	    }
+    public FoDConnectionException(final String message) {
+        super(message);
+    }
 
-	    public FoDConnectionException(Throwable cause) {
-	        super(cause);
-	    }
-	
+    public FoDConnectionException(final Throwable cause) {
+        super(cause);
+    }
+
 }

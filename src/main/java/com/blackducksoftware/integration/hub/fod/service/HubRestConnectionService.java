@@ -23,143 +23,111 @@
  */
 package com.blackducksoftware.integration.hub.fod.service;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.exception.IntegrationException;
-import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
-import com.blackducksoftware.integration.hub.api.project.ProjectRequestService;
-import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionRequestService;
-import com.blackducksoftware.integration.hub.api.vulnerablebomcomponent.VulnerableBomComponentRequestService;
-import com.blackducksoftware.integration.hub.dataservice.phonehome.PhoneHomeDataService;
+import com.blackducksoftware.integration.hub.configuration.HubServerConfig;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.fod.HubFoDConfigProperties;
 import com.blackducksoftware.integration.hub.fod.domain.HubProjectVersion;
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
-import com.blackducksoftware.integration.hub.request.HubRequest;
-import com.blackducksoftware.integration.hub.request.HubRequestFactory;
+import com.blackducksoftware.integration.hub.request.BodyContent;
+import com.blackducksoftware.integration.hub.request.Request;
+import com.blackducksoftware.integration.hub.request.Response;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
+import com.blackducksoftware.integration.hub.rest.HttpMethod;
 import com.blackducksoftware.integration.hub.rest.RestConnection;
+import com.blackducksoftware.integration.hub.service.HubService;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
+import com.blackducksoftware.integration.hub.service.PhoneHomeService;
+import com.blackducksoftware.integration.hub.service.ProjectService;
 import com.blackducksoftware.integration.log.IntBufferedLogger;
 import com.blackducksoftware.integration.log.IntLogger;
 import com.google.gson.Gson;
 
-import okhttp3.Response;
-
-
 public class HubRestConnectionService {
-	
-	@Autowired
+
+    @Autowired
     HubFoDConfigProperties appProps;
-	
-	private final HubServicesFactory hubServicesFactory;
-	private final HubRequestFactory hubRequestFactory;
+
+    private final HubServicesFactory hubServicesFactory;
 
     private final IntLogger logger;
-    
+
     private final Logger appLog = LoggerFactory.getLogger(HubRestConnectionService.class);
 
     private final RestConnection restConnection;
 
-    private PhoneHomeDataService phoneHomeDataService;
+    private PhoneHomeService phoneHomeDataService;
 
-    private HubVersionRequestService hubVersionRequestService;
-    
-    private ProjectRequestService projectRequestService;
+    private ProjectService projectRequestService;
 
-    private ProjectVersionRequestService projectVersionRequestService;
-    
-    private VulnerableBomComponentRequestService vulnerableBomComponentRequestService;
+    private HubService hubService;
 
-
-    
     public HubRestConnectionService() {
         restConnection = null;
         this.logger = new IntBufferedLogger();
         hubServicesFactory = null;
-        hubRequestFactory = null;
     }
 
-    public HubRestConnectionService(RestConnection restConnection) {
+    public HubRestConnectionService(final RestConnection restConnection) {
         this.restConnection = restConnection;
         this.logger = new IntBufferedLogger();
         this.hubServicesFactory = new HubServicesFactory(restConnection);
-        this.hubRequestFactory = new HubRequestFactory(restConnection);
     }
 
     public CredentialsRestConnection getCredentialsRestConnection(final HubServerConfig config)
             throws IllegalArgumentException, EncryptionException, HubIntegrationException {
-        return new CredentialsRestConnection(this.logger, 
-        				config.getHubUrl(), 
-        				config.getGlobalCredentials().getUsername(), 
-        				config.getGlobalCredentials().getDecryptedPassword(), 
-        				config.getTimeout());
-    }
-    
- 
-    public void updateProjectVersion(String url, HubProjectVersion hubProjectVersion)
-    {
-    	Gson gson = new Gson();
-        String json = gson.toJson(hubProjectVersion); 
-
-    	HubRequest putRequest = hubRequestFactory.createRequest(url);
-    	
-    	try(Response response = putRequest.executePut("application/json", json)) {
-    		
-    		appLog.debug("UPDATE PROJECT VERSION RESPONSE CODE: " +response.code());
-
-    	} catch (IntegrationException e) {
-    		appLog.error("IntegrationException in updateProjectVersion");
-			e.printStackTrace();
-		}
-    	
+        new CredentialsRestConnection(this.logger, config.getHubUrl(), config.getGlobalCredentials().getUsername(),
+                config.getGlobalCredentials().getDecryptedPassword(), config.getTimeout(), config.getProxyInfo());
+        return new CredentialsRestConnection(this.logger,
+                config.getHubUrl(),
+                config.getGlobalCredentials().getUsername(),
+                config.getGlobalCredentials().getDecryptedPassword(),
+                config.getTimeout(),
+                config.getProxyInfo());
     }
 
-    public PhoneHomeDataService getPhoneHomeDataService() {
+    public void updateProjectVersion(final String url, final HubProjectVersion hubProjectVersion) {
+        final Gson gson = new Gson();
+        final String json = gson.toJson(hubProjectVersion);
+
+        final Request request = new Request.Builder(url).method(HttpMethod.PUT).bodyContent(new BodyContent(json)).build();
+        try (Response response = hubService.executeRequest(request)) {
+            appLog.debug("UPDATE PROJECT VERSION RESPONSE CODE: " + response.getStatusCode());
+        } catch (final IOException e) {
+            appLog.error("IntegrationException in updateProjectVersion");
+            e.printStackTrace();
+        } catch (final IntegrationException e) {
+            appLog.error("IntegrationException in updateProjectVersion");
+            e.printStackTrace();
+        }
+    }
+
+    public PhoneHomeService getPhoneHomeDataService() {
         if (phoneHomeDataService == null) {
-            phoneHomeDataService = hubServicesFactory.createPhoneHomeDataService(logger);
+            phoneHomeDataService = hubServicesFactory.createPhoneHomeService();
         }
         return phoneHomeDataService;
     }
 
-    public HubVersionRequestService getHubVersionRequestService() {
-        if (hubVersionRequestService == null) 
-        {
-            hubVersionRequestService = hubServicesFactory.createHubVersionRequestService();
+    public ProjectService getProjectRequestService() {
+        if (projectRequestService == null) {
+            projectRequestService = hubServicesFactory.createProjectService();
         }
-        return hubVersionRequestService;
+        return projectRequestService;
     }
-    
-    public ProjectRequestService getProjectRequestService()
-    {
-    	if(projectRequestService == null)
-    	{
-    		projectRequestService = hubServicesFactory.createProjectRequestService(logger);
-    	}
-    	return projectRequestService;
+
+    public HubService getHubService() {
+        if (hubService == null) {
+            hubService = hubServicesFactory.createHubService();
+        }
+        return hubService;
     }
-    
-    public ProjectVersionRequestService getProjectVersionRequestService()
-    {
-    	if(projectVersionRequestService == null)
-    	{
-    		projectVersionRequestService = hubServicesFactory.createProjectVersionRequestService(logger);
-    	}
-    	return projectVersionRequestService;
-    }
-    
-    public VulnerableBomComponentRequestService getVulnerableBomComponentRequestService()
-    {
-    	if(vulnerableBomComponentRequestService == null)
-    	{
-    		vulnerableBomComponentRequestService = hubServicesFactory.createVulnerableBomComponentRequestService();
-    	}
-    	return vulnerableBomComponentRequestService;
-    }
-    
 
     public RestConnection getRestConnection() {
         return restConnection;
@@ -168,6 +136,5 @@ public class HubRestConnectionService {
     public boolean hasActiveHubConnection() {
         return restConnection != null;
     }
-    
 
 }

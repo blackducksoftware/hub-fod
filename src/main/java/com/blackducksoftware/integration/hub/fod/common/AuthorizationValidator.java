@@ -27,22 +27,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.exception.IntegrationException;
-import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
+import com.blackducksoftware.integration.hub.configuration.HubServerConfig;
+import com.blackducksoftware.integration.hub.configuration.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.fod.service.HubRestConnectionService;
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.rest.RestConnection;
 import com.blackducksoftware.integration.validator.ValidationResults;
 
 public class AuthorizationValidator {
-    
-	@Autowired
-	private final HubRestConnectionService connectionService;
+
+    @Autowired
+    private final HubRestConnectionService connectionService;
 
     @Autowired
     private final HubServerConfigBuilder builder;
 
     public static final String LOGIN_SUCCESS_MESSAGE = "Successful login!";
-    
+
     public AuthorizationValidator(final HubRestConnectionService connectionService,
             final HubServerConfigBuilder builder) {
         this.connectionService = connectionService;
@@ -51,22 +51,20 @@ public class AuthorizationValidator {
 
     public AuthorizationResponse validateCredentials(final String username, final String password, final String hubUrl,
             final String proxyUsername, final String proxyPassword, final String proxyPort, final String proxyHost,
-            final String ignoredProxyHosts, final String timeout) 
-    {
+            final String ignoredProxyHosts, final String timeout) {
         setHubServerConfigBuilderFields(username, password, hubUrl, proxyUsername, proxyPassword, proxyPort,
                 proxyHost, ignoredProxyHosts, timeout);
 
         final ValidationResults results = builder.createValidator().assertValid();
         if (results.isSuccess()) {
             try {
-                HubServerConfig config = builder.build();
-                RestConnection connection = connectionService.getCredentialsRestConnection(config);
+                final HubServerConfig config = builder.build();
+                final RestConnection connection = connectionService.getCredentialsRestConnection(config);
                 connection.connect();
                 return new AuthorizationResponse(connection, LOGIN_SUCCESS_MESSAGE);
-           
             } catch (IllegalArgumentException | EncryptionException e) {
                 return new AuthorizationResponse(e.getMessage());
-            } catch (IntegrationException e) {
+            } catch (final IntegrationException e) {
                 return new AuthorizationResponse(e.getMessage());
             }
         }

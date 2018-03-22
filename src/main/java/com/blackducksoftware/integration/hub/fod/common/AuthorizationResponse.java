@@ -23,25 +23,23 @@
  */
 package com.blackducksoftware.integration.hub.fod.common;
 
-
 import com.blackducksoftware.integration.hub.rest.RestConnection;
-
-
 
 public class AuthorizationResponse {
 
     private RestConnection connection;
 
     private String responseMessage;
-    
-    public AuthorizationResponse(){}
 
-    public AuthorizationResponse(RestConnection connection, String responseMessage) {
+    public AuthorizationResponse() {
+    }
+
+    public AuthorizationResponse(final RestConnection connection, final String responseMessage) {
         this.connection = connection;
         this.responseMessage = responseMessage;
     }
 
-    public AuthorizationResponse(String responseMessage) {
+    public AuthorizationResponse(final String responseMessage) {
         this(null, responseMessage);
     }
 
@@ -54,4 +52,3 @@ public class AuthorizationResponse {
     }
 
 }
-

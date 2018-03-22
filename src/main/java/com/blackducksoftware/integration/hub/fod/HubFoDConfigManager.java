@@ -39,103 +39,124 @@ import ch.qos.logback.classic.Logger;
 
 @Component
 public class HubFoDConfigManager {
-	
-	private final Logger logger = (Logger)LoggerFactory.getLogger(this.getClass());
-	
-	@Autowired
+
+    private final Logger logger = (Logger) LoggerFactory.getLogger(this.getClass());
+
+    @Autowired
     HubFoDConfigProperties props;
-	
-	private static final String PROMPT_ENTER_HUB_URL = "Enter Black Duck Hub URL=";
-	private static final String PROMPT_ENTER_HUB_PROJECT = "Enter Black Duck Hub Project=";
-	private static final String PROMPT_ENTER_HUB_PROJECT_VERSION = "Enter Black Duck Hub Project Version=";
-	private static final String PROMPT_ENTER_HUB_PASSWORD = "Enter Black Duck Hub Password=";
-	private static final String PROMPT_ENTER_HUB_USERNAME = "Enter Black Duck Hub Username=";
-	private static final String PROMPT_ENTER_FOD_USERNAME = "Enter Fortify on Demand Username=";
-	private static final String PROMPT_ENTER_FOD_PASSWORD = "Enter Fortify on Demand Password=";
-	private static final String PROMPT_ENTER_FOD_CLIENT_ID = "Enter Fortify on Demand API Client ID=";
-	private static final String PROMPT_ENTER_FOD_CLIENT_SECRET = "Enter Fortify on Demand API Client Secret=";
-	private static final String PROMPT_ENTER_FOD_TENANT = "Enter Fortify on Demand Tenant ID=";
-	
-	public void processUsage(String... args)
-	{
-		//Check for verbose mode
-		List<String> argsList = Arrays.asList(args);
-		if(argsList.contains("--v") | argsList.contains("--verbose"))
-		{
-			Logger duckLog = (Logger)LoggerFactory.getLogger("com.blackducksoftware");
-			duckLog.setLevel(Level.DEBUG);
-			logger.debug("ENTERING VERBOSE MODE");
-			
-		}
-		
-		//Check for help
-		if(argsList.contains("--help"))
-		{
-			logger.info(VulnerabilityReportConstants.USAGE);
-			System.exit(0);
-			
-		}
-			
-		// Start the prompts if optional props were not specified
-		
-		//If Hub URL is blank, prompt to get it
-		if(StringUtils.isBlank(props.getHubURL())){props.setHubURL(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_HUB_URL)));}	
-	
-		//If Hub Project is blank, prompt to get it
-		if(StringUtils.isBlank(props.getHubProject())){props.setHubProject(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_HUB_PROJECT)));}	
-	
-		//If Hub Project Version is blank, prompt to get it
-		if(StringUtils.isBlank(props.getHubProjectVersion())){props.setHubProjectVersion(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_HUB_PROJECT_VERSION)));}	
-	
-		//If Hub user is blank, prompt to get it
-		if(StringUtils.isBlank(props.getHubUser())){props.setHubUser(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_HUB_USERNAME)));}	
-		
-		//If Hub password is blank, prompt to get it
-		if(StringUtils.isBlank(props.getHubPassword())){props.setHubPassword(String.valueOf(ConsoleUtils.readPassword(PROMPT_ENTER_HUB_PASSWORD)));}
-		
-		//If FoD password AND Api Key are both blank, user needs to choose which grant type method
-		String authMethod = "0";
-		
-		if(StringUtils.isNotBlank(props.getFodPassword()) || StringUtils.isNotBlank(props.getFodUsername())) authMethod = "1";
-		if(StringUtils.isNotBlank(props.getFodClientId()) || StringUtils.isNotBlank(props.getFodClientSecret())) authMethod = "2";
-		
-		if(authMethod.contains("0"))
-		{
-			System.out.println("How would you like to authenticate to Fortify On Demand?");
-			System.out.println("(1) Username & Password");
-			System.out.println("(2) API Client Credentials");
-			authMethod = ConsoleUtils.readLine("Select #:");
-			while(!authMethod.equals("1") & !authMethod.equals("2")) authMethod = ConsoleUtils.readLine("Incorrect Choice. Please type either 1 or 2:");
-			
-			System.out.println("");
-		}
-		
-		if(authMethod.equals("1"))
-		{	
-			props.setFodGrantType(VulnerabilityReportConstants.GRANT_TYPE_PASSWORD);
-			//If FoD user is blank, prompt to get it
-			if(StringUtils.isBlank(props.getFodUsername())){props.setFodUsername(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_FOD_USERNAME)));}
 
-			//If FoD password is blank, prompt to get it
-			if(StringUtils.isBlank(props.getFodPassword())){props.setFodPassword(String.valueOf(ConsoleUtils.readPassword(PROMPT_ENTER_FOD_PASSWORD)));}
-	
-			//If FoD tenant is blank, prompt to get it
-			if(StringUtils.isBlank(props.getFodTenantId())){props.setFodTenantId(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_FOD_TENANT)));}
-		}
-		else
-		{
-			props.setFodGrantType(VulnerabilityReportConstants.GRANT_TYPE_CLIENT_CREDENTIALS);
-			
-			//If FoD api client id is blank, prompt to get it
-			if(StringUtils.isBlank(props.getFodClientId())){props.setFodClientId(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_FOD_CLIENT_ID)));}
+    private static final String PROMPT_ENTER_HUB_URL = "Enter Black Duck Hub URL=";
 
-			//If FoD api client secret is blank, prompt to get it
-			if(StringUtils.isBlank(props.getFodClientSecret())){props.setFodClientSecret(String.valueOf(ConsoleUtils.readPassword(PROMPT_ENTER_FOD_CLIENT_SECRET)));}
+    private static final String PROMPT_ENTER_HUB_PROJECT = "Enter Black Duck Hub Project=";
 
-		}
+    private static final String PROMPT_ENTER_HUB_PROJECT_VERSION = "Enter Black Duck Hub Project Version=";
 
-	}
-	
-	
+    private static final String PROMPT_ENTER_HUB_PASSWORD = "Enter Black Duck Hub Password=";
 
+    private static final String PROMPT_ENTER_HUB_USERNAME = "Enter Black Duck Hub Username=";
+
+    private static final String PROMPT_ENTER_FOD_USERNAME = "Enter Fortify on Demand Username=";
+
+    private static final String PROMPT_ENTER_FOD_PASSWORD = "Enter Fortify on Demand Password=";
+
+    private static final String PROMPT_ENTER_FOD_CLIENT_ID = "Enter Fortify on Demand API Client ID=";
+
+    private static final String PROMPT_ENTER_FOD_CLIENT_SECRET = "Enter Fortify on Demand API Client Secret=";
+
+    private static final String PROMPT_ENTER_FOD_TENANT = "Enter Fortify on Demand Tenant ID=";
+
+    public void processUsage(final String... args) {
+        // Check for verbose mode
+        final List<String> argsList = Arrays.asList(args);
+        if (argsList.contains("--v") | argsList.contains("--verbose")) {
+            final Logger duckLog = (Logger) LoggerFactory.getLogger("com.blackducksoftware");
+            duckLog.setLevel(Level.DEBUG);
+            logger.debug("ENTERING VERBOSE MODE");
+
+        }
+
+        // Check for help
+        if (argsList.contains("--help")) {
+            logger.info(VulnerabilityReportConstants.USAGE);
+            System.exit(0);
+        }
+
+        // Start the prompts if optional props were not specified
+
+        // If Hub URL is blank, prompt to get it
+        if (StringUtils.isBlank(props.getHubURL())) {
+            props.setHubURL(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_HUB_URL)));
+        }
+
+        // If Hub Project is blank, prompt to get it
+        if (StringUtils.isBlank(props.getHubProject())) {
+            props.setHubProject(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_HUB_PROJECT)));
+        }
+
+        // If Hub Project Version is blank, prompt to get it
+        if (StringUtils.isBlank(props.getHubProjectVersion())) {
+            props.setHubProjectVersion(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_HUB_PROJECT_VERSION)));
+        }
+
+        // If Hub user is blank, prompt to get it
+        if (StringUtils.isBlank(props.getHubUser())) {
+            props.setHubUser(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_HUB_USERNAME)));
+        }
+
+        // If Hub password is blank, prompt to get it
+        if (StringUtils.isBlank(props.getHubPassword())) {
+            props.setHubPassword(String.valueOf(ConsoleUtils.readPassword(PROMPT_ENTER_HUB_PASSWORD)));
+        }
+
+        // If FoD password AND Api Key are both blank, user needs to choose which grant type method
+        String authMethod = "0";
+
+        if (StringUtils.isNotBlank(props.getFodPassword()) || StringUtils.isNotBlank(props.getFodUsername())) {
+            authMethod = "1";
+        }
+        if (StringUtils.isNotBlank(props.getFodClientId()) || StringUtils.isNotBlank(props.getFodClientSecret())) {
+            authMethod = "2";
+        }
+
+        if (authMethod.contains("0")) {
+            System.out.println("How would you like to authenticate to Fortify On Demand?");
+            System.out.println("(1) Username & Password");
+            System.out.println("(2) API Client Credentials");
+            authMethod = ConsoleUtils.readLine("Select #:");
+            while (!authMethod.equals("1") & !authMethod.equals("2")) {
+                authMethod = ConsoleUtils.readLine("Incorrect Choice. Please type either 1 or 2:");
+            }
+            System.out.println("");
+        }
+
+        if (authMethod.equals("1")) {
+            props.setFodGrantType(VulnerabilityReportConstants.GRANT_TYPE_PASSWORD);
+            // If FoD user is blank, prompt to get it
+            if (StringUtils.isBlank(props.getFodUsername())) {
+                props.setFodUsername(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_FOD_USERNAME)));
+            }
+
+            // If FoD password is blank, prompt to get it
+            if (StringUtils.isBlank(props.getFodPassword())) {
+                props.setFodPassword(String.valueOf(ConsoleUtils.readPassword(PROMPT_ENTER_FOD_PASSWORD)));
+            }
+
+            // If FoD tenant is blank, prompt to get it
+            if (StringUtils.isBlank(props.getFodTenantId())) {
+                props.setFodTenantId(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_FOD_TENANT)));
+            }
+        } else {
+            props.setFodGrantType(VulnerabilityReportConstants.GRANT_TYPE_CLIENT_CREDENTIALS);
+
+            // If FoD api client id is blank, prompt to get it
+            if (StringUtils.isBlank(props.getFodClientId())) {
+                props.setFodClientId(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_FOD_CLIENT_ID)));
+            }
+
+            // If FoD api client secret is blank, prompt to get it
+            if (StringUtils.isBlank(props.getFodClientSecret())) {
+                props.setFodClientSecret(String.valueOf(ConsoleUtils.readPassword(PROMPT_ENTER_FOD_CLIENT_SECRET)));
+            }
+        }
+    }
 }

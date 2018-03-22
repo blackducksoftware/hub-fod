@@ -41,48 +41,48 @@ import com.blackducksoftware.integration.hub.fod.domain.FoDApplicationRelease;
 @Service
 public class FoDImporterService {
 
-	private static final String REPORT_NAME = "Black Duck Open Source Vulnerability Report";
+    private static final String REPORT_NAME = "Black Duck Open Source Vulnerability Report";
 
-	@Autowired
-	FoDRestConnectionService fodRestClient;
+    @Autowired
+    FoDRestConnectionService fodRestClient;
 
-	@Autowired
-	HubFoDConfigProperties appProps;
+    @Autowired
+    HubFoDConfigProperties appProps;
 
-	private final Logger appLog = LoggerFactory.getLogger(VulnerabilityReportService.class);
+    private final Logger appLog = LoggerFactory.getLogger(VulnerabilityReportService.class);
 
-	public void foDAuthenticate() throws Exception {
-		// Authenticate to FoD
-		fodRestClient.authenticate();
-	}
+    public void foDAuthenticate() throws Exception {
+        // Authenticate to FoD
+        fodRestClient.authenticate();
+    }
 
-	public String importVulnerabilityPDF() throws IOException{
-		
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HH:mm:s");
+    public String importVulnerabilityPDF() throws IOException {
 
-	    Date reportDate = new Date(System.currentTimeMillis());
-		
-		// InputStream is = new FileInputStream(outputPDF);
-		long vulnPdfLength = new File(appProps.getOutputFolder().concat("/").concat(appProps.getOutputPDFFilename())).length();
-		appLog.debug(appProps.getOutputFolder().concat("/").concat(appProps.getOutputPDFFilename()) + "PDF size: " + vulnPdfLength);
-		
-		// Get the import report session id
-		String importSessionId = fodRestClient.getFoDImportSessionId(appProps.getFodReleaseId(), vulnPdfLength,
-				REPORT_NAME + " - " +appProps.getHubProject() + " " + appProps.getHubProjectVersion() + " " + sdf.format(reportDate), appProps.getReportNotes());
-		appLog.debug("FoD Import Session Id: " + importSessionId);
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HH:mm:s");
 
-		// upload the PDF
-		return fodRestClient.uploadFoDPDF(appProps.getFodReleaseId(), importSessionId, appProps.getOutputFolder().concat("/").concat(appProps.getOutputPDFFilename()), vulnPdfLength);
-	
+        final Date reportDate = new Date(System.currentTimeMillis());
 
-	}
+        // InputStream is = new FileInputStream(outputPDF);
+        final long vulnPdfLength = new File(appProps.getOutputFolder().concat("/").concat(appProps.getOutputPDFFilename())).length();
+        appLog.debug(appProps.getOutputFolder().concat("/").concat(appProps.getOutputPDFFilename()) + "PDF size: " + vulnPdfLength);
 
-	public List<FoDApplication> getFodApplications() {
-		return fodRestClient.getFoDApplicationList();
-	}
+        // Get the import report session id
+        final String importSessionId = fodRestClient.getFoDImportSessionId(appProps.getFodReleaseId(), vulnPdfLength,
+                REPORT_NAME + " - " + appProps.getHubProject() + " " + appProps.getHubProjectVersion() + " " + sdf.format(reportDate),
+                appProps.getReportNotes());
+        appLog.debug("FoD Import Session Id: " + importSessionId);
 
-	public List<FoDApplicationRelease> getFodApplicationReleases(String applicationId) {
-		return fodRestClient.getFoDApplicationReleases(applicationId);
-	}
+        // upload the PDF
+        return fodRestClient.uploadFoDPDF(appProps.getFodReleaseId(), importSessionId,
+                appProps.getOutputFolder().concat("/").concat(appProps.getOutputPDFFilename()), vulnPdfLength);
 
+    }
+
+    public List<FoDApplication> getFodApplications() {
+        return fodRestClient.getFoDApplicationList();
+    }
+
+    public List<FoDApplicationRelease> getFodApplicationReleases(final String applicationId) {
+        return fodRestClient.getFoDApplicationReleases(applicationId);
+    }
 }

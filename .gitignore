@@ -7,3 +7,4 @@
 /.apt_generated/
 /target/
 /vuln-out/
+hub-fod-application.log

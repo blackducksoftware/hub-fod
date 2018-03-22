@@ -31,91 +31,93 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class HubFoDJsonParser {
-	
-	private final static String JSON_META_LABEL = "_meta";
-	private final static String JSON_META_LINKS = "links";
-	private final static String JSON_META_REL = "rel";
-	private final static String JSON_META_VULNERABLE_COMPONENTS = "vulnerable-components";
-	private final static String JSON_HREF = "href";
-	private final static String JSON_LICENSE = "license";
-	private final static String JSON_LICENSES = "licenses";
-	private final static String JSON_NAME = "name";
-	private final static String JSON_CODE_SHARING = "codeSharing";
-	//private final static String JSON_COMPONENTVERSION = "componentVersion";
-	//private final static String JSON_VULNERABILITIES = "vulnerabilities";
 
-	private final static String HUB_API_PROJECTS = "api/projects/";
-	private final static String HUB_UI_PROJECTS = "#projects/id:";
-	private final static String HUB_API_VERSIONS = "versions/";
-	private final static String HUB_UI_VERSIONS = "#versions/id:";
-	//private final static String HUB_UI_VULN = "/#vulnerabilities/id:";
-	//private final static String HUB_API_COMPONENTS = "api/components/";
-	
-	public static String getVulnerableComponentsURL(String projectVersionJson)
-	{
-		
-		final JsonObject jsonObject = new JsonParser().parse(projectVersionJson).getAsJsonObject();
+    private final static String JSON_META_LABEL = "_meta";
+
+    private final static String JSON_META_LINKS = "links";
+
+    private final static String JSON_META_REL = "rel";
+
+    private final static String JSON_META_VULNERABLE_COMPONENTS = "vulnerable-components";
+
+    private final static String JSON_HREF = "href";
+
+    private final static String JSON_LICENSE = "license";
+
+    private final static String JSON_LICENSES = "licenses";
+
+    private final static String JSON_NAME = "name";
+
+    private final static String JSON_CODE_SHARING = "codeSharing";
+    // private final static String JSON_COMPONENTVERSION = "componentVersion";
+    // private final static String JSON_VULNERABILITIES = "vulnerabilities";
+
+    private final static String HUB_API_PROJECTS = "api/projects/";
+
+    private final static String HUB_UI_PROJECTS = "#projects/id:";
+
+    private final static String HUB_API_VERSIONS = "versions/";
+
+    private final static String HUB_UI_VERSIONS = "#versions/id:";
+    // private final static String HUB_UI_VULN = "/#vulnerabilities/id:";
+    // private final static String HUB_API_COMPONENTS = "api/components/";
+
+    public static String getVulnerableComponentsURL(final String projectVersionJson) {
+
+        final JsonObject jsonObject = new JsonParser().parse(projectVersionJson).getAsJsonObject();
         final JsonArray linksArray = jsonObject.get(JSON_META_LABEL).getAsJsonObject()
-        										.get(JSON_META_LINKS).getAsJsonArray();	
-        for (JsonElement link : linksArray) {
-		    JsonObject linkObj = link.getAsJsonObject();
-		    if(linkObj.get(JSON_META_REL).getAsString().equalsIgnoreCase(JSON_META_VULNERABLE_COMPONENTS))
-		    {
-		    	return linkObj.get(JSON_HREF).getAsString();
-		    }
-		}
-        
+                .get(JSON_META_LINKS).getAsJsonArray();
+        for (final JsonElement link : linksArray) {
+            final JsonObject linkObj = link.getAsJsonObject();
+            if (linkObj.get(JSON_META_REL).getAsString().equalsIgnoreCase(JSON_META_VULNERABLE_COMPONENTS)) {
+                return linkObj.get(JSON_HREF).getAsString();
+            }
+        }
+
         return null;
-		
-	}
-	
-	public static String getProjectHubUIURL(String projectJson)
-	{
-		final JsonObject jsonObject = new JsonParser().parse(projectJson).getAsJsonObject();
-		String projectApiLink = jsonObject.get(JSON_META_LABEL).getAsJsonObject()
-											.get(JSON_HREF).getAsString();
-		
-		return projectApiLink.replace(HUB_API_PROJECTS, HUB_UI_PROJECTS);						
-		
-	}
-	
-	public static String getProjectVersionHubUIURL(String projectVersionJson)
-	{
-		final JsonObject jsonObject = new JsonParser().parse(projectVersionJson).getAsJsonObject();
-		String projectVersionApiLink = jsonObject.get(JSON_META_LABEL).getAsJsonObject()
-											.get(JSON_HREF).getAsString();
-		
-		
-		
-		return projectVersionApiLink.substring(0,projectVersionApiLink.indexOf(HUB_API_PROJECTS)).concat(
-						projectVersionApiLink.substring(projectVersionApiLink.indexOf(HUB_API_VERSIONS)))
-				.replace(HUB_API_VERSIONS, HUB_UI_VERSIONS);						
-		
-	}
-	
-	public static String getProjectVersionRestURL(String projectVersionJson)
-	{
-		final JsonObject jsonObject = new JsonParser().parse(projectVersionJson).getAsJsonObject();
-		return jsonObject.get(JSON_META_LABEL).getAsJsonObject()
-											.get(JSON_HREF).getAsString();			
-		
-	}
-	
-	public static HashMap<String, String> getVulnerableComponentLicense(String vulnComponentJson)
-	{
-		HashMap<String, String> licenseMap = new HashMap<String, String>();
-		
-		final JsonObject jsonObject = new JsonParser().parse(vulnComponentJson).getAsJsonObject(); 
-		final JsonArray licenseArray = jsonObject.get(JSON_LICENSE).getAsJsonObject()
-				.get(JSON_LICENSES).getAsJsonArray();
-				
-		for (JsonElement license : licenseArray) {
-			JsonObject licenseObj = license.getAsJsonObject();
-			licenseMap.put(licenseObj.get(JSON_NAME).getAsString(), licenseObj.get(JSON_CODE_SHARING).getAsString());
-		}
-			
-		return licenseMap;
-	}
-	
+
+    }
+
+    public static String getProjectHubUIURL(final String projectJson) {
+        final JsonObject jsonObject = new JsonParser().parse(projectJson).getAsJsonObject();
+        final String projectApiLink = jsonObject.get(JSON_META_LABEL).getAsJsonObject()
+                .get(JSON_HREF).getAsString();
+
+        return projectApiLink.replace(HUB_API_PROJECTS, HUB_UI_PROJECTS);
+
+    }
+
+    public static String getProjectVersionHubUIURL(final String projectVersionJson) {
+        final JsonObject jsonObject = new JsonParser().parse(projectVersionJson).getAsJsonObject();
+        final String projectVersionApiLink = jsonObject.get(JSON_META_LABEL).getAsJsonObject()
+                .get(JSON_HREF).getAsString();
+
+        return projectVersionApiLink.substring(0, projectVersionApiLink.indexOf(HUB_API_PROJECTS)).concat(
+                projectVersionApiLink.substring(projectVersionApiLink.indexOf(HUB_API_VERSIONS)))
+                .replace(HUB_API_VERSIONS, HUB_UI_VERSIONS);
+
+    }
+
+    public static String getProjectVersionRestURL(final String projectVersionJson) {
+        final JsonObject jsonObject = new JsonParser().parse(projectVersionJson).getAsJsonObject();
+        return jsonObject.get(JSON_META_LABEL).getAsJsonObject()
+                .get(JSON_HREF).getAsString();
+
+    }
+
+    public static HashMap<String, String> getVulnerableComponentLicense(final String vulnComponentJson) {
+        final HashMap<String, String> licenseMap = new HashMap<>();
+
+        final JsonObject jsonObject = new JsonParser().parse(vulnComponentJson).getAsJsonObject();
+        final JsonArray licenseArray = jsonObject.get(JSON_LICENSE).getAsJsonObject()
+                .get(JSON_LICENSES).getAsJsonArray();
+
+        for (final JsonElement license : licenseArray) {
+            final JsonObject licenseObj = license.getAsJsonObject();
+            licenseMap.put(licenseObj.get(JSON_NAME).getAsString(), licenseObj.get(JSON_CODE_SHARING).getAsString());
+        }
+
+        return licenseMap;
+    }
 
 }
