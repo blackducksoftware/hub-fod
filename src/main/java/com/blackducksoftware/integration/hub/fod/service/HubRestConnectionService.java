@@ -82,14 +82,13 @@ public class HubRestConnectionService {
 
     public CredentialsRestConnection getCredentialsRestConnection(final HubServerConfig config)
             throws IllegalArgumentException, EncryptionException, HubIntegrationException {
-        new CredentialsRestConnection(this.logger, config.getHubUrl(), config.getGlobalCredentials().getUsername(),
-                config.getGlobalCredentials().getDecryptedPassword(), config.getTimeout(), config.getProxyInfo());
         return new CredentialsRestConnection(this.logger,
                 config.getHubUrl(),
                 config.getGlobalCredentials().getUsername(),
                 config.getGlobalCredentials().getDecryptedPassword(),
                 config.getTimeout(),
-                config.getProxyInfo());
+                config.getProxyInfo(),
+                null);
     }
 
     public void updateProjectVersion(final String url, final HubProjectVersion hubProjectVersion) {
