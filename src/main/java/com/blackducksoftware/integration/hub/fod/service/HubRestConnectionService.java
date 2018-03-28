@@ -41,6 +41,7 @@ import com.blackducksoftware.integration.hub.request.Response;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
 import com.blackducksoftware.integration.hub.rest.HttpMethod;
 import com.blackducksoftware.integration.hub.rest.RestConnection;
+import com.blackducksoftware.integration.hub.rest.UriCombiner;
 import com.blackducksoftware.integration.hub.service.HubService;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
 import com.blackducksoftware.integration.hub.service.PhoneHomeService;
@@ -82,14 +83,13 @@ public class HubRestConnectionService {
 
     public CredentialsRestConnection getCredentialsRestConnection(final HubServerConfig config)
             throws IllegalArgumentException, EncryptionException, HubIntegrationException {
-        new CredentialsRestConnection(this.logger, config.getHubUrl(), config.getGlobalCredentials().getUsername(),
-                config.getGlobalCredentials().getDecryptedPassword(), config.getTimeout(), config.getProxyInfo());
         return new CredentialsRestConnection(this.logger,
                 config.getHubUrl(),
                 config.getGlobalCredentials().getUsername(),
                 config.getGlobalCredentials().getDecryptedPassword(),
                 config.getTimeout(),
-                config.getProxyInfo());
+                config.getProxyInfo(),
+                new UriCombiner());
     }
 
     public void updateProjectVersion(final String url, final HubProjectVersion hubProjectVersion) {
