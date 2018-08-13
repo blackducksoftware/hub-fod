@@ -34,6 +34,9 @@ public class HubFoDConfigProperties {
     @Value("${hub.url}")
     private String hubURL;
 
+    @Value("${hub.apiToken}")
+    private String blackDuckApiToken;
+    
     @Value("${hub.username}")
     private String hubUser;
 
@@ -67,6 +70,12 @@ public class HubFoDConfigProperties {
     @Value("${proxy.ignore.hosts}")
     private String ignoreProxyHosts;
 
+    @Value("${trust.certs}")
+    private boolean trustCerts;
+    
+    @Value("${phone.home.enabled}")
+    private boolean phoneHomeEnabled;
+    
     @Value("${hub.timeout}")
     private String hubTimeout;
 
@@ -123,7 +132,16 @@ public class HubFoDConfigProperties {
         this.hubURL = hubURL;
     }
 
-    public String getHubUser() {
+    
+    public String getBlackDuckApiToken() {
+		return blackDuckApiToken;
+	}
+
+	public void setBlackDuckApiToken(String blackDuckApiToken) {
+		this.blackDuckApiToken = blackDuckApiToken;
+	}
+
+	public String getHubUser() {
         return hubUser;
     }
 
@@ -218,8 +236,24 @@ public class HubFoDConfigProperties {
     public void setProxyPort(String proxyPort) {
         this.proxyPort = proxyPort;
     }
+    
+    public boolean getTrustCerts() {
+		return trustCerts;
+	}
 
-    public String getNtlmDomain() {
+	public void setTrustCerts(boolean trustCerts) {
+		this.trustCerts = trustCerts;
+	}
+
+	public boolean isPhoneHomeEnabled() {
+		return phoneHomeEnabled;
+	}
+
+	public void setPhoneHomeEnabled(boolean phoneHomeEnabled) {
+		this.phoneHomeEnabled = phoneHomeEnabled;
+	}
+
+	public String getNtlmDomain() {
         return ntlmDomain;
     }
 

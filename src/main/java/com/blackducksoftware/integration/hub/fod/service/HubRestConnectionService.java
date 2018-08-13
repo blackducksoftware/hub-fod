@@ -23,110 +23,142 @@
  */
 package com.blackducksoftware.integration.hub.fod.service;
 
-import java.io.IOException;
-
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.configuration.HubServerConfig;
+import com.blackducksoftware.integration.hub.configuration.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.fod.HubFoDConfigProperties;
-import com.blackducksoftware.integration.hub.fod.domain.HubProjectVersion;
-import com.blackducksoftware.integration.hub.request.BodyContent;
-import com.blackducksoftware.integration.hub.request.Request;
-import com.blackducksoftware.integration.hub.request.Response;
-import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
-import com.blackducksoftware.integration.hub.rest.HttpMethod;
-import com.blackducksoftware.integration.hub.rest.RestConnection;
-import com.blackducksoftware.integration.hub.rest.UriCombiner;
+import com.blackducksoftware.integration.hub.rest.BlackduckRestConnection;
+import com.blackducksoftware.integration.hub.service.HubRegistrationService;
 import com.blackducksoftware.integration.hub.service.HubService;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
 import com.blackducksoftware.integration.hub.service.PhoneHomeService;
 import com.blackducksoftware.integration.hub.service.ProjectService;
-import com.blackducksoftware.integration.log.IntBufferedLogger;
-import com.blackducksoftware.integration.log.IntLogger;
+import com.blackducksoftware.integration.log.Slf4jIntLogger;
+import com.blackducksoftware.integration.phonehome.PhoneHomeClient;
+import com.blackducksoftware.integration.rest.connection.RestConnection;
+import com.blackducksoftware.integration.util.IntEnvironmentVariables;
 import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 
+@Service
 public class HubRestConnectionService {
 
-    @Autowired
-    HubFoDConfigProperties appProps;
+	@Autowired
+	private final HubFoDConfigProperties configurationProperties;
 
-    private final HubServicesFactory hubServicesFactory;
+    private HubServicesFactory hubServicesFactory;
+    
+    private final Logger logger = LoggerFactory.getLogger(HubRestConnectionService.class);
 
-    private final IntLogger logger;
+    private RestConnection restConnection;
+    
+    public static final String ALLIANCES_TRACKING_ID = "UA-116682967-3";
 
-    private final Logger appLog = LoggerFactory.getLogger(HubRestConnectionService.class);
-
-    private final RestConnection restConnection;
-
-    private PhoneHomeService phoneHomeDataService;
-
-    private ProjectService projectRequestService;
-
-    private HubService hubService;
-
-    public HubRestConnectionService() {
-        restConnection = null;
-        this.logger = new IntBufferedLogger();
-        hubServicesFactory = null;
+    
+     public HubRestConnectionService(final HubFoDConfigProperties configurationProperties) {
+        this.configurationProperties = configurationProperties;
     }
 
-    public HubRestConnectionService(final RestConnection restConnection) {
-        this.restConnection = restConnection;
-        this.logger = new IntBufferedLogger();
-        this.hubServicesFactory = new HubServicesFactory(restConnection);
-    }
+    
+    public RestConnection getBlackDuckConnection() throws IntegrationException, EncryptionException, HubIntegrationException
+    {
+    	final HubServerConfig hubServerConfig = createBuilder().build();
+       restConnection = null;
 
-    public CredentialsRestConnection getCredentialsRestConnection(final HubServerConfig config)
-            throws IllegalArgumentException, EncryptionException, HubIntegrationException {
-        return new CredentialsRestConnection(this.logger,
-                config.getHubUrl(),
-                config.getGlobalCredentials().getUsername(),
-                config.getGlobalCredentials().getDecryptedPassword(),
-                config.getTimeout(),
-                config.getProxyInfo(),
-                new UriCombiner());
-    }
+        try {
+            if (StringUtils.isNotBlank(configurationProperties.getBlackDuckApiToken())) {
+            	restConnection = hubServerConfig.createApiTokenRestConnection(new Slf4jIntLogger(logger));
+            } else {
+            	restConnection = hubServerConfig.createCredentialsRestConnection(new Slf4jIntLogger(this.logger));
+            }
+            
+            restConnection.connect();
 
-    public void updateProjectVersion(final String url, final HubProjectVersion hubProjectVersion) {
-        final Gson gson = new Gson();
-        final String json = gson.toJson(hubProjectVersion);
-
-        final Request request = new Request.Builder(url).method(HttpMethod.PUT).bodyContent(new BodyContent(json)).build();
-        try (Response response = hubService.executeRequest(request)) {
-            appLog.debug("UPDATE PROJECT VERSION RESPONSE CODE: " + response.getStatusCode());
-        } catch (final IOException e) {
-            appLog.error("IntegrationException in updateProjectVersion");
-            e.printStackTrace();
-        } catch (final IntegrationException e) {
-            appLog.error("IntegrationException in updateProjectVersion");
-            e.printStackTrace();
+        } catch (Exception e){
+        	
+        	logger.error("Unable to connect to Black Duck with error:" + e.getMessage());
+        	throw (e);
+            
         }
+
+        logger.info("Successful connection to Black Duck!");
+        return restConnection;
+    	
+    }
+    
+    private HubServerConfigBuilder createBuilder() {
+        final HubServerConfigBuilder hubServerConfigBuilder = new HubServerConfigBuilder();
+        hubServerConfigBuilder.setUrl(configurationProperties.getHubURL());
+        hubServerConfigBuilder.setApiToken(configurationProperties.getBlackDuckApiToken());
+        hubServerConfigBuilder.setUsername(configurationProperties.getHubUser());
+        hubServerConfigBuilder.setPassword(configurationProperties.getHubPassword());
+        hubServerConfigBuilder.setTimeout(configurationProperties.getHubTimeout());
+        hubServerConfigBuilder.setProxyHost(configurationProperties.getProxyHost());
+        hubServerConfigBuilder.setProxyPort(configurationProperties.getProxyPort());
+        hubServerConfigBuilder.setProxyUsername(configurationProperties.getProxyUsername());
+        hubServerConfigBuilder.setProxyPassword(configurationProperties.getProxyPassword());
+        hubServerConfigBuilder.setTrustCert(configurationProperties.getTrustCerts());
+
+        return hubServerConfigBuilder;
     }
 
+ 
     public PhoneHomeService getPhoneHomeDataService() {
-        if (phoneHomeDataService == null) {
-            phoneHomeDataService = hubServicesFactory.createPhoneHomeService();
-        }
-        return phoneHomeDataService;
+       
+    	logger.debug("Creating Phone home data service");
+        return new PhoneHomeService(createHubService(), new Slf4jIntLogger(logger), createPhoneHomeClient(), createHubRegistrationService(), new IntEnvironmentVariables(true));
+    	//return createHubServicesFactory(restConnection).createPhoneHomeService(); 
+
+    }
+    
+    public PhoneHomeClient createPhoneHomeClient() {
+        logger.debug("Creating Phone home client");
+        final HttpClientBuilder httpClientBuilder = restConnection.getClientBuilder();
+        final Gson gson = HubServicesFactory.createDefaultGson();
+        return new PhoneHomeClient(ALLIANCES_TRACKING_ID, httpClientBuilder, gson);
+    }
+    
+    public HubServicesFactory createHubServicesFactory(RestConnection restconnection)
+    {
+    	if(hubServicesFactory==null)
+    	{
+	    	final Gson gson = HubServicesFactory.createDefaultGson();
+	        final JsonParser jsonParser = HubServicesFactory.createDefaultJsonParser();
+	        hubServicesFactory = new HubServicesFactory(gson, jsonParser, (BlackduckRestConnection) restConnection, new Slf4jIntLogger(logger));
+	    }
+        return hubServicesFactory;
+
+    }
+    
+    public HubService createHubService() {
+        logger.debug("Creating Hub service");
+        return createHubServicesFactory(restConnection).createHubService();
+    }
+    
+    public HubRegistrationService createHubRegistrationService() {
+        logger.debug("Creating Hub registration service");
+        return createHubServicesFactory(restConnection).createHubRegistrationService();
     }
 
-    public ProjectService getProjectRequestService() {
-        if (projectRequestService == null) {
-            projectRequestService = hubServicesFactory.createProjectService();
-        }
-        return projectRequestService;
+    public ProjectService getProjectService() {
+    	
+    	return createHubServicesFactory(restConnection).createProjectService();
     }
+    
 
     public HubService getHubService() {
-        if (hubService == null) {
-            hubService = hubServicesFactory.createHubService();
-        }
-        return hubService;
+    	
+    	return createHubServicesFactory(restConnection).createHubService();
+       
     }
 
     public RestConnection getRestConnection() {

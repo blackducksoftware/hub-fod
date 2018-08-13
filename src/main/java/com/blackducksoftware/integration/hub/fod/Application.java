@@ -23,6 +23,8 @@
  */
 package com.blackducksoftware.integration.hub.fod;
 
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
+
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -32,6 +34,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
+import com.blackducksoftware.integration.exception.IntegrationCertificateException;
 import com.blackducksoftware.integration.hub.fod.common.VulnerabilityReportConstants;
 import com.blackducksoftware.integration.hub.fod.domain.FoDApplication;
 import com.blackducksoftware.integration.hub.fod.domain.FoDApplicationRelease;
@@ -53,31 +56,56 @@ public class Application implements CommandLineRunner {
     @Autowired
     HubFoDConfigManager configurationManager;
 
-    private final HubFoDConfigProperties appProps;
-
-    public Application(final HubFoDConfigProperties appProps) {
-        this.appProps = appProps;
-    }
+    @Autowired
+    private HubFoDConfigProperties configurationProperties;
 
     @Override
     public void run(final String... args) {
 
         try {
-            logger.info("STARTING Hub + Fortify on Demand Integration version " + VulnerabilityReportConstants.HUB_FOD_INTEGRATION_VERSION);
+            logger.info("STARTING Black Duck + Fortify on Demand Integration version " + VulnerabilityReportConstants.HUB_FOD_INTEGRATION_VERSION);
             configurationManager.processUsage(args);
 
-            // Authenticate and get Hub connection
-            vulnReportService.createHubConnection();
+            // Authenticate and get Black Duck connection
+            try {
+            	vulnReportService.createHubConnection();
+            }
+            catch (IntegrationCertificateException ice)
+            {
+                logger.info("Untrusted certificate!!");
+                System.out.println("The Black Duck certificate is not trusted! Do you still want to proceed?");
+                System.out.println("(1) Yes, I trust this Black Duck server.");
+                System.out.println("(2) No, this server is not to be trusted.");
+                final String certSelection = ConsoleUtils.readLine("Select #:");
+                if(certSelection.equals("1"))
+                {
+                	configurationProperties.setTrustCerts(true);
+                	vulnReportService.createHubConnection();
+                }
+                else {
+                	System.out.println("Black Duck server untrusted. FoD importer will not continue. Please try again with a trusted server");
+                	System.exit(1);
+                }
+       	
+            }
+            catch (final Exception hce) {
+            	logger.error("BLACK DUCK CONNECTION FAILED.  Please check the Black Duck URL, proxy information, username, and password and try again.");
+            	logger.info("Black Duck URL=" + configurationProperties.getHubURL());
+            	logger.info("Black Duck username=" + configurationProperties.getHubUser());
+            	System.exit(1);
+
+            }
+            
 
             // Authenticate to FoD
             fodImporter.foDAuthenticate();
 
             // Generate the Vulnerability PDF
-            logger.info("Generating Vulnerability Report for " + appProps.getHubProject() + " " + appProps.getHubProjectVersion());
+            logger.info("Generating Vulnerability Report for " + configurationProperties.getHubProject() + " " + configurationProperties.getHubProjectVersion());
             vulnReportService.generateVulnerabilityReport();
 
             // If FoD app was not specified or mapped, have the user choose
-            if (appProps.getFodReleaseId().isEmpty()) {
+            if (configurationProperties.getFodReleaseId().isEmpty()) {
                 System.out.println("");
                 logger.info("FoD Application mapping not found");
                 System.out.println("------------------------------------------------");
@@ -91,7 +119,7 @@ public class Application implements CommandLineRunner {
                 }
 
                 final String appSelection = ConsoleUtils.readLine("Select #:");
-                appProps.setFodApplicationId(String.valueOf(fodAppList.get(Integer.parseInt(appSelection) - 1).getApplicationId()));
+                configurationProperties.setFodApplicationId(String.valueOf(fodAppList.get(Integer.parseInt(appSelection) - 1).getApplicationId()));
 
                 System.out.println("");
                 // based on the app choice, figure out which release
@@ -100,7 +128,7 @@ public class Application implements CommandLineRunner {
                 // If there is only 1 release, assume that's the one
                 if (fodAppReleaseList.size() == 1) {
                     logger.info(fodAppReleaseList.get(0).getReleaseName() + " is the only release, and will be auto-selected.");
-                    appProps.setFodReleaseId(fodAppReleaseList.get(0).getReleaseId());
+                    configurationProperties.setFodReleaseId(fodAppReleaseList.get(0).getReleaseId());
                 } else // If more than 1 release exists, user needs to choose
                 {
 
@@ -113,12 +141,12 @@ public class Application implements CommandLineRunner {
                     }
                     final String releaseSelection = ConsoleUtils.readLine("Select #:");
                     System.out.println("");
-                    appProps.setFodReleaseId(fodAppReleaseList.get(Integer.parseInt(releaseSelection) - 1).getReleaseId());
+                    configurationProperties.setFodReleaseId(fodAppReleaseList.get(Integer.parseInt(releaseSelection) - 1).getReleaseId());
                 }
 
                 // Store the mapping in the Hub
-                logger.info("Storing FoD Application mapping for future imports (Stored in the Hub Version Notes field)");
-                vulnReportService.storeFodHubMapping(appProps.getFodReleaseId());
+                logger.info("Storing FoD Application mapping for future imports (Stored in the Black Duck Version Notes field)");
+                vulnReportService.storeFodHubMapping(configurationProperties.getFodReleaseId());
             }
 
             logger.info("Importing PDF into Fortify On Demand");
@@ -126,14 +154,14 @@ public class Application implements CommandLineRunner {
             final String reportId = fodImporter.importVulnerabilityPDF();
 
             logger.info("Completed Successfully!");
-            logger.info("Go to Fortify on Demand, or download the report directly at " + appProps.getFodBaseURL()
+            logger.info("Go to Fortify on Demand, or download the report directly at " + configurationProperties.getFodBaseURL()
                     + VulnerabilityReportConstants.FOD_REPORT_DOWNLOAD_URL + reportId);
 
         }
 
         // Catch all exceptions and stop
         catch (final Exception e) {
-            logger.error("Hub-FoD could not complete successfully due to " + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
+            logger.error("BlackDuck-FoD could not complete successfully due to " + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
         }
     }
 

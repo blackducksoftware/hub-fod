@@ -45,15 +45,17 @@ public class HubFoDConfigManager {
     @Autowired
     HubFoDConfigProperties props;
 
-    private static final String PROMPT_ENTER_HUB_URL = "Enter Black Duck Hub URL=";
+    private static final String PROMPT_ENTER_HUB_URL = "Enter Black Duck URL=";
 
-    private static final String PROMPT_ENTER_HUB_PROJECT = "Enter Black Duck Hub Project=";
+    private static final String PROMPT_ENTER_HUB_PROJECT = "Enter Black Duck Project=";
 
-    private static final String PROMPT_ENTER_HUB_PROJECT_VERSION = "Enter Black Duck Hub Project Version=";
+    private static final String PROMPT_ENTER_HUB_PROJECT_VERSION = "Enter Black Duck Project Version=";
 
-    private static final String PROMPT_ENTER_HUB_PASSWORD = "Enter Black Duck Hub Password=";
+    private static final String PROMPT_ENTER_HUB_API_TOKEN = "Enter Black Duck API Token=";
+    
+    private static final String PROMPT_ENTER_HUB_PASSWORD = "Enter Black Duck Password=";
 
-    private static final String PROMPT_ENTER_HUB_USERNAME = "Enter Black Duck Hub Username=";
+    private static final String PROMPT_ENTER_HUB_USERNAME = "Enter Black Duck Username=";
 
     private static final String PROMPT_ENTER_FOD_USERNAME = "Enter Fortify on Demand Username=";
 
@@ -97,19 +99,51 @@ public class HubFoDConfigManager {
         if (StringUtils.isBlank(props.getHubProjectVersion())) {
             props.setHubProjectVersion(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_HUB_PROJECT_VERSION)));
         }
-
-        // If Hub user is blank, prompt to get it
-        if (StringUtils.isBlank(props.getHubUser())) {
-            props.setHubUser(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_HUB_USERNAME)));
+        
+        // If Black Duck api token and password are both blank, user needs to choose which authentication method
+        String authMethod = "0";
+        
+        if (StringUtils.isNotBlank(props.getHubUser()) || StringUtils.isNotBlank(props.getHubPassword())) {
+            authMethod = "1";
         }
-
-        // If Hub password is blank, prompt to get it
-        if (StringUtils.isBlank(props.getHubPassword())) {
-            props.setHubPassword(String.valueOf(ConsoleUtils.readPassword(PROMPT_ENTER_HUB_PASSWORD)));
+        if (StringUtils.isNotBlank(props.getBlackDuckApiToken())) {
+            authMethod = "2";
+        }
+        
+        if (authMethod.contains("0")) {
+            System.out.println("How would you like to authenticate to Black Duck?");
+            System.out.println("(1) Username & Password");
+            System.out.println("(2) API Token");
+            authMethod = ConsoleUtils.readLine("Select #:");
+            while (!authMethod.equals("1") & !authMethod.equals("2")) {
+                authMethod = ConsoleUtils.readLine("Incorrect Choice. Please type either 1 or 2:");
+            }
+            System.out.println("");
+        }
+        
+        if (authMethod.equals("1"))
+        {
+        
+	        // If Hub user is blank, prompt to get it
+	        if (StringUtils.isBlank(props.getHubUser())) {
+	            props.setHubUser(String.valueOf(ConsoleUtils.readLine(PROMPT_ENTER_HUB_USERNAME)));
+	        }
+	
+	        // If Hub password is blank, prompt to get it
+	        if (StringUtils.isBlank(props.getHubPassword())) {
+	            props.setHubPassword(String.valueOf(ConsoleUtils.readPassword(PROMPT_ENTER_HUB_PASSWORD)));
+	        }
+        } else {
+        	
+        	// If Black Duck API Token is blank, prompt to get it
+	        if (StringUtils.isBlank(props.getBlackDuckApiToken())) {
+	            props.setBlackDuckApiToken(String.valueOf(ConsoleUtils.readPassword(PROMPT_ENTER_HUB_API_TOKEN)));
+        	
+	        }
         }
 
         // If FoD password AND Api Key are both blank, user needs to choose which grant type method
-        String authMethod = "0";
+        authMethod = "0";
 
         if (StringUtils.isNotBlank(props.getFodPassword()) || StringUtils.isNotBlank(props.getFodUsername())) {
             authMethod = "1";

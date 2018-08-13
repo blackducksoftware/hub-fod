@@ -251,14 +251,14 @@ public class FoDRestConnectionService {
                     .post(formBody)
                     .build();
             final Response response = client.newCall(request).execute();
-            logger.info("response::" + response.message() + ", " + response.code() + ", " + response.toString());
-
+            
             if (!response.isSuccessful()) {
+            	logger.debug("response::" + response.message() + ", " + response.code() + ", " + response.toString());
                 throw new FoDConnectionException("Unexpected code " + response);
             }
 
-            logger.debug(appProps.getFodUsername().concat(" AUTHENTICATION to FoD SUCCEEDED"));
-
+            logger.info("Successful connection to Fortify On Demand!");
+            
             final String content = IOUtils.toString(response.body().byteStream(), "utf-8");
             response.body().close();
 
