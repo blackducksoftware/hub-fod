@@ -29,7 +29,7 @@ hub.url
 hub.project  
 hub.project.version
 
-Black Duck authentication can either use username/password or api token.  If left unspecified, hub-fod will ask you which authentication method to use: 
+Black Duck authentication can either use username/password or api token.  If left unspecified, hub-fod will ask you which authentication method to use:   
 hub.username   
 hub.password  
 
@@ -40,7 +40,7 @@ fod.username
 fod.password  
 fod.tenant.id  
 
-fod.client.id 
+fod.client.id   
 fod.client.secret
 
 
