@@ -23,8 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.fod;
 
-import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
-
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -92,6 +90,8 @@ public class Application implements CommandLineRunner {
             	logger.error("BLACK DUCK CONNECTION FAILED.  Please check the Black Duck URL, proxy information, username, and password and try again.");
             	logger.info("Black Duck URL=" + configurationProperties.getHubURL());
             	logger.info("Black Duck username=" + configurationProperties.getHubUser());
+            	logger.error(hce.getMessage());
+            	hce.printStackTrace();
             	System.exit(1);
 
             }
