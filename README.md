@@ -12,6 +12,10 @@ Hub-FoD integration is a command line tool allowing the export of Hub Project Ve
 ## Where can I get the latest release? ##
 Download the latest from [release page](https://github.com/blackducksoftware/hub-fod/releases)
 
+## Notes ##
+* Supported for Black Duck 4.8.x and up only.  Black Duck 4.7.x will produce 400 errors.  
+* See the latest [hub-fod documentation](https://blackducksoftware.atlassian.net/wiki/spaces/PARTNERS/pages/328597509/Black+Duck+Fortify+on+Demand+plugin) for updates.
+
 ## Usage ##
 $ java -jar hub-fod-[VERSION].jar [OPTIONS: parameter=value]
 
